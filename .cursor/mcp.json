@@ -1,0 +1,47 @@
+{
+  "mcpServers": {
+    "TalkToFigma": {
+      "command": "bunx",
+      "args": ["cursor-talk-to-figma-mcp@latest"]
+    },
+    "Figma": {
+      "url": "https://mcp.figma.com/mcp"
+    },
+    "Playwright": {
+      "command": "npx",
+      "args": ["-y", "@playwright/mcp@latest"]
+    },
+    "firecrawl-mcp": {
+      "command": "npx",
+      "args": ["-y", "firecrawl-mcp"],
+      "env": {
+        "FIRECRAWL_API_KEY": "fc-26d7fdc13fe340de937de00dbefc706c"
+      }
+    },
+    "Slack": {
+      "url": "https://mcp.slack.com/mcp"
+    },
+    "Notion": {
+      "url": "https://mcp.notion.com/mcp"
+    },
+    "GoogleSheets": {
+      "command": "node",
+      "args": [
+        "C:/Users/user/Desktop/윤채빈/마케팅/Figma_MCP/google-sheets-mcp/server.mjs"
+      ]
+    },
+    "GoogleForms": {
+      "command": "node",
+      "args": [
+        "C:/Users/user/Desktop/윤채빈/마케팅/Figma_MCP/google-form-mcp/server.mjs"
+      ]
+    },
+    "MySQL": {
+      "command": "npx",
+      "args": ["-y", "@hechtcarmel/mysql-mcp-server"],
+      "env": {
+        "MYSQL_ENV_FILE": "C:/Users/user/Desktop/윤채빈/마케팅/Figma_MCP/mysql-mcp/.env"
+      }
+    }
+  }
+}
