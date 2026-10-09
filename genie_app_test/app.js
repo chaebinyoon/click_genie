@@ -238,9 +238,9 @@ async function loadMoreSearchAlbums() {
         <div style="font-size: 13px; font-weight: 600; color: #141414; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${album.title}</div>
         <div style="font-size: 11px; color: #888; margin-top: 2px;">${album.releaseYear}</div>
       </button>`).join("");
-      
+
     observerEl.insertAdjacentHTML("beforebegin", newHtml);
-    
+
     if (!state.searchAlbumHasMore) {
       if (state.observer) state.observer.unobserve(observerEl);
       observerEl.remove();
@@ -275,24 +275,64 @@ function currentTrack() {
 }
 
 function play(index) {
-  state.index = index;
-  state.paused = false;
+  const track = tracks[index];
+  if (track) {
+    if (track.previewUrl) {
+      if (state.nowPlaying === track && !audioPlayer.paused) {
+        audioPlayer.pause();
+        state.paused = true;
+      } else {
+        state.nowPlaying = track;
+        state.index = index;
+        if (audioPlayer.src !== track.previewUrl) audioPlayer.src = track.previewUrl;
+        audioPlayer.play();
+        state.paused = false;
+
+        // 재생목록(Queue) 하단 자동 추가 로직
+        const newTrack = {
+          id: Date.now(),
+          title: track.title,
+          artist: track.artist,
+          cover: track.cover,
+          previewUrl: track.previewUrl,
+          color: track.color || "#2b3b4a",
+          addedAt: Date.now()
+        };
+        const existingIdx = state.queueTracks.findIndex(t => t.title === newTrack.title && t.artist === newTrack.artist);
+        if (existingIdx > -1) state.queueTracks.splice(existingIdx, 1);
+        state.queueTracks.push(newTrack);
+      }
+    } else {
+      state.index = index;
+      state.paused = false;
+      state.nowPlaying = null;
+      audioPlayer.pause();
+    }
+  }
   state.sheet = null;
-  state.nowPlaying = null;
-  audioPlayer.pause();
   render();
 }
 
 function renderDelta(track) {
-  if (track.delta === "up") return `<span class="delta up" > <span class="mark">▴</span>${ track.amount }</span> `;
-  if (track.delta === "down") return `<span class="delta down" > <span class="mark">▾</span>${ track.amount }</span> `;
+  if (track.delta === "up") return `<span class="delta up" > <span class="mark">▴</span>${track.amount}</span> `;
+  if (track.delta === "down") return `<span class="delta down" > <span class="mark">▾</span>${track.amount}</span> `;
   return `<span class="delta" > <span class="mark">-</span></span> `;
 }
 
 function trackButton(track, index) {
+  const isPlayingNow = state.nowPlaying === track;
+  const highlightColor = isPlayingNow ? "#f7f7f7" : "transparent";
   const on = state.index === index && !state.nowPlaying ? " is-on" : "";
-  const coverHtml = track.cover ? `<img class="cover" src = "${track.cover}" alt = "${track.title}" /> ` : ` <span class="cover" style="background:${track.color}" ></span> `;
-  return `<button class="track${on}" data-action="play" data-index="${index}" > ${ coverHtml }<span class="rank"><b>${index + 1}</b>${renderDelta(track)}</span><span class="meta"><strong>${track.title}</strong><em>${track.artist}</em></span></button> `;
+  const coverHtml = track.cover ? `<img class="cover" src="${track.cover}" alt="${track.title}" />` : `<span class="cover" style="background:${track.color}"></span>`;
+
+  return `<button class="track${on}" data-action="play" data-index="${index}" style="background-color: ${highlightColor};">
+    ${coverHtml}
+    <span class="rank"><b>${index + 1}</b>${renderDelta(track)}</span>
+    <span class="meta"><strong>${track.title}</strong><em>${track.artist}</em></span>
+    ${track.previewUrl
+      ? (isPlayingNow && !state.paused ? '<span style="margin-left:auto; font-size:16px; color:#141414; padding-right:10px;">❚❚</span>' : '<span style="margin-left:auto; font-size:16px; color:#141414; padding-right:10px;">▶</span>')
+      : ""}
+  </button>`;
 }
 
 function searchTrackButton(track, index) {
@@ -303,8 +343,7 @@ function searchTrackButton(track, index) {
       <button class="track" data-action="play-search" data-index="${index}" style="padding-left: 10px; background-color: ${highlightColor};" >
       <img class="cover" src="${track.coverUrl}" alt="" style="object-fit: cover;" />
       <span class="meta" style="margin-left: 12px;"><strong>${track.title}</strong><em>${track.artist}</em></span>
-      ${
-      track.previewUrl
+      ${track.previewUrl
       ? (isPlayingNow && !state.paused ? '<span style="margin-left:auto; font-size:16px; color:#141414; padding-right:10px;">❚❚</span>' : '<span style="margin-left:auto; font-size:16px; color:#141414; padding-right:10px;">▶</span>')
       : ""
     }
@@ -315,7 +354,7 @@ function renderCard(card, index, type) {
   const coverHtml = card.cover ? `<img class="card-cover" src = "${card.cover}" alt = "" /> ` : ` <span class="card-cover" style="background:${card.color}" ></span> `;
   return `
       <button class="card" data-action="${type}" data-index="${index}" >
-        ${ coverHtml }
+        ${coverHtml}
       <span class="card-copy">${card.title.replace("\n", "<br />")}</span>
       <span class="byline"><img src="assets/ellipse.svg" width="11" height="11" alt="" />${card.by}</span>
     </button> `;
@@ -400,11 +439,11 @@ function searchScreen() {
       ? `<div style="margin-bottom: 24px;" >
            <h3 style="font-size: 16px; font-weight: 700; margin: 0 0 12px 4px;">인기곡 (30초 듣기)</h3>
            <div class="track-list">${state.searchResults.map(searchTrackButton).join("")}</div>
-           ${ loadingMoreHtml }
-           ${ observerHtml }
+           ${loadingMoreHtml}
+           ${observerHtml}
          </div> `
       : !state.artistProfile
-        ? `<div class="empty-list" > ${ tabCopy.search.map((row) => `<div class="row">${row}</div>`).join("") }</div> ` : "";
+        ? `<div class="empty-list" > ${tabCopy.search.map((row) => `<div class="row">${row}</div>`).join("")}</div> ` : "";
 
   return `
       <section class="page" style="padding-bottom: 100px;" >
@@ -414,9 +453,9 @@ function searchScreen() {
                style="flex: 1; height: 44px; padding: 0 16px; border-radius: 12px; border: none; background: #f0f0f0; font-size: 15px; outline: none;" />
         <button data-action="do-search" style="width: 64px; height: 44px; border-radius: 12px; background: #121212; color: #fff; font-weight: 600;">검색</button>
       </div>
-      ${ profileHtml }
-      ${ albumsHtml }
-      ${ resultsHtml }
+      ${profileHtml}
+      ${albumsHtml}
+      ${resultsHtml}
     </section> `;
 }
 
@@ -427,8 +466,7 @@ function albumTrackButton(track, index) {
       <button class="track" data-action="play-album-track" data-index="${index}" style="padding-left: 10px; background-color: ${highlightColor};" >
       <img class="cover" src="${track.coverUrl}" alt="" style="object-fit: cover;" />
       <span class="meta" style="margin-left: 12px;"><strong>${track.title}</strong><em>${track.artist}</em></span>
-      ${
-      track.previewUrl
+      ${track.previewUrl
       ? (isPlayingNow && !state.paused ? '<span style="margin-left:auto; font-size:16px; color:#141414; padding-right:10px;">❚❚</span>' : '<span style="margin-left:auto; font-size:16px; color:#141414; padding-right:10px;">▶</span>')
       : ""
     }
@@ -438,11 +476,11 @@ function albumTrackButton(track, index) {
 function searchAlbumScreen() {
   const album = state.currentAlbum;
   if (!album) return "";
-  
+
   const tracksHtml = state.isLoadingAlbum
     ? `<div style="padding: 60px 0; text-align: center; color: #888; font-size: 14px;" > 트랙 정보를 불러오는 중입니다...</div> `
     : state.currentAlbumTracks.length > 0
-      ? `<div class="track-list" style="margin-top: 16px;" > ${ state.currentAlbumTracks.map(albumTrackButton).join("") }</div> `
+      ? `<div class="track-list" style="margin-top: 16px;" > ${state.currentAlbumTracks.map(albumTrackButton).join("")}</div> `
       : `<div style="padding: 60px 0; text-align: center; color: #888; font-size: 14px;" > 트랙 정보가 없습니다.</div> `;
 
   return `
@@ -456,7 +494,7 @@ function searchAlbumScreen() {
           <div style="font-size: 12px; color: #888;">${album.releaseYear}</div>
         </div>
       </div>
-      ${ tracksHtml }
+      ${tracksHtml}
     </section> `;
 }
 
@@ -717,7 +755,7 @@ function playlistEditScreen() {
       <div class="pld-ctrl-row" style="margin-bottom: 8px;">
         <button class="pld-ctrl-btn" data-action="toggle-select-all">
           <div class="pld-checkbox${isAllSelected ? " is-checked" : ""}" style="margin-right: 4px;"></div>
-          전체선택 ${ selectedCount > 0 ? `(${selectedCount})` : "" }
+          전체선택 ${selectedCount > 0 ? `(${selectedCount})` : ""}
         </button>
       <button class="pld-ctrl-btn" data-action="open-sort-sheet">순서변경 ▾</button>
       </div>
@@ -757,11 +795,11 @@ function queueScreen() {
     const trackId = track.id || (idx + 1);
     const isSelected = state.selectedQueueIds.includes(trackId);
     const isPlaying = current && current.title === track.title;
-    const coverBg = track.cover ? `background - image: url(${ track.cover }); background - size: cover; ` : `background - color:${ track.color || "#8CC7BF" }; `;
+    const coverBg = track.cover ? `background - image: url(${track.cover}); background - size: cover; ` : `background - color:${track.color || "#8CC7BF"}; `;
 
     return `
       <div class="queue-song-item${isPlaying ? " is - playing" : ""}" data-action="${state.queueEdit ? "queue - toggle - select" : "queue - play - track"}" data-id="${trackId}" data-index="${idx}" >
-        ${ state.queueEdit ? `<div class="pld-checkbox${isSelected ? " is-checked" : ""}"></div>` : "" }
+        ${state.queueEdit ? `<div class="pld-checkbox${isSelected ? " is-checked" : ""}"></div>` : ""}
         <div class="queue-song-thumb" style="${coverBg}">
           ${isPlaying && !state.queueEdit ? '<div class="queue-play-badge">▶</div>' : ""}
         </div>
@@ -769,8 +807,7 @@ function queueScreen() {
           <div class="queue-song-title${isPlaying ? " is-playing-title" : ""}">${track.title}</div>
           <div class="queue-song-artist">${track.artist}</div>
         </div>
-      ${
-        state.queueEdit ? `
+      ${state.queueEdit ? `
           <div class="pld-drag-handle" data-action="queue-drag" data-id="${trackId}">≡</div>
         ` : `
           <div class="queue-song-meta">
@@ -800,8 +837,7 @@ function queueScreen() {
         <button class="queue-subtab${state.queueTab === " hires" ? " is - active" : ""}" data-action="queue-tab" data-tab="hires" > 고음질전용관 <span class="queue-5g-badge" > 5G</span></button>
         </div>
       </div>
-      ${
-        state.queueShowSearch ? `
+      ${state.queueShowSearch ? `
         <div class="queue-search-input-wrap">
           <span class="search-icon">🔍</span>
           <input type="text" id="queue-search-input" value="${state.queueSearchQuery}" placeholder="재생목록에서 검색" />
@@ -832,8 +868,7 @@ function queueScreen() {
         ${observerEl}
       </div>
 
-      ${
-      state.queueEdit ? `
+      ${state.queueEdit ? `
         <div class="pld-edit-toolbar-wrap">
           ${selectedCount > 0 ? `<div class="pld-count-badge-floating">${selectedCount}</div>` : ""}
           <div class="pld-edit-toolbar">
@@ -912,7 +947,7 @@ function render() {
   };
 
   if (state.showQueue) {
-    app.innerHTML = `${ queueScreen() }${ sheet() }${ sortBottomSheet() } `;
+    app.innerHTML = `${queueScreen()}${sheet()}${sortBottomSheet()} `;
   } else {
     const showGlobalHeader = state.tab !== "library";
     const showChips = state.tab === "home" && state.screen === "home";
@@ -929,11 +964,10 @@ function render() {
 
     app.innerHTML = `
       <div class="status" ><img class="notch" src="assets/notch.svg" width="172" height="32" alt="" /><div class="time">9:41</div><div class="status-right"><img src="assets/signal.svg" width="18" height="12" alt="" /><img src="assets/wifi.svg" width="17" height="11.8339" alt="" /><img src="assets/battery.svg" width="27.4012" height="13" alt="" /></div></div>
-        ${ showGlobalHeader ? `<header class="header"><button class="logo" data-action="logo" aria-label="지니 홈"><img src="assets/image_1.png" alt="genie" /></button><div class="header-right"><button class="avatar" data-action="profile"><img src="assets/frame_14.png" width="32" height="32" alt="프로필" /></button><button class="pass" data-action="pass">이용권</button></div></header>` : "" }
-      ${ showChips ? `<nav class="chips"><div class="chip-row">${state.chips.map((c) => `<button class="chip${c === state.chip ? " is-on" : ""}" data-action="chip" data-chip="${c}">${c}</button>`).join("")}</div></nav>` : "" }
+        ${showGlobalHeader ? `<header class="header"><button class="logo" data-action="logo" aria-label="지니 홈"><img src="assets/image_1.png" alt="genie" /></button><div class="header-right"><button class="avatar" data-action="profile"><img src="assets/frame_14.png" width="32" height="32" alt="프로필" /></button><button class="pass" data-action="pass">이용권</button></div></header>` : ""}
+      ${showChips ? `<nav class="chips"><div class="chip-row">${state.chips.map((c) => `<button class="chip${c === state.chip ? " is-on" : ""}" data-action="chip" data-chip="${c}">${c}</button>`).join("")}</div></nav>` : ""}
     <main class="main">${body}</main>
-      ${
-      isEditing
+      ${isEditing
         ? `
         <div class="pld-edit-toolbar-wrap">
           ${selectedCount > 0 ? `<div class="pld-count-badge-floating">${selectedCount}</div>` : ""}
@@ -951,9 +985,9 @@ function render() {
         <nav class="tabs">${tabs.map((tab) => `<button class="tab${state.tab === tab.id ? " is-on" : ""}" data-action="tab" data-tab="${tab.id}"><img src="${tab.icon}" width="24" height="24" alt="" />${tab.label}</button>`).join("")}</nav>
         <div class="home-indicator"><span></span></div>
       </div>`
-    }
-      ${ sheet() }
-      ${ sortBottomSheet() }
+      }
+      ${sheet()}
+      ${sortBottomSheet()}
     `;
   }
 
@@ -1351,14 +1385,14 @@ app.addEventListener("click", (event) => {
   } else if (action === "edit-delete") {
     const pl = getCurrentPlaylist();
     if (state.selectedSongIds.length === 0) return alert("삭제할 곡을 선택해주세요.");
-    if (confirm(`선택한 ${ state.selectedSongIds.length }개 곡을 플레이리스트에서 삭제하시겠습니까 ? `)) {
+    if (confirm(`선택한 ${state.selectedSongIds.length}개 곡을 플레이리스트에서 삭제하시겠습니까 ? `)) {
       pl.tracks = pl.tracks.filter((t) => !state.selectedSongIds.includes(t.id));
-      pl.sub = `총 ${ pl.tracks.length } 곡`;
+      pl.sub = `총 ${pl.tracks.length} 곡`;
       state.selectedSongIds = [];
     }
   } else if (action === "edit-add-to") {
     if (state.selectedSongIds.length === 0) return alert("담을 곡을 선택해주세요.");
-    alert(`선택한 ${ state.selectedSongIds.length }개 곡을 보관함 또는 다른 플레이리스트에 담았습니다.`);
+    alert(`선택한 ${state.selectedSongIds.length}개 곡을 보관함 또는 다른 플레이리스트에 담았습니다.`);
   }
 
   // 오디오 및 검색 제어
@@ -1375,7 +1409,7 @@ app.addEventListener("click", (event) => {
     state.currentAlbumTracks = [];
     state.isLoadingAlbum = true;
     render();
-    
+
     fetch(`https://itunes.apple.com/lookup?id=${albumId}&entity=song`)
       .then(res => res.json())
       .then(data => {
@@ -1565,6 +1599,48 @@ app.addEventListener("keydown", (event) => {
   }
 });
 
+// --- 6. 초기 실행 및 인기차트 로딩 ---
+async function fetchTopTracks() {
+  try {
+    const res = await fetch("https://itunes.apple.com/us/rss/topsongs/limit=100/json");
+    const data = await res.json();
+    if (data && data.feed && data.feed.entry) {
+      const newTracks = data.feed.entry.map((entry, index) => {
+        const title = entry["im:name"].label;
+        const artist = entry["im:artist"].label;
+        const images = entry["im:image"];
+        const cover = images && images.length > 0 ? images[images.length - 1].label.replace(/170x170bb/g, "300x300bb").replace(/55x55bb/g, "300x300bb").replace(/60x60bb/g, "300x300bb") : "https://via.placeholder.com/300?text=No+Cover";
+
+        let previewUrl = null;
+        if (Array.isArray(entry.link)) {
+          const audioLink = entry.link.find(l => l.attributes && l.attributes.title === "Preview");
+          if (audioLink) previewUrl = audioLink.attributes.href;
+        } else if (entry.link && entry.link.attributes && entry.link.attributes.title === "Preview") {
+          previewUrl = entry.link.attributes.href;
+        }
+
+        const deltas = ["up", "down", "same"];
+        return {
+          id: entry.id.attributes ? entry.id.attributes["im:id"] : Date.now() + index,
+          title: title,
+          artist: artist,
+          cover: cover,
+          previewUrl: previewUrl,
+          delta: deltas[Math.floor(Math.random() * deltas.length)],
+          amount: Math.floor(Math.random() * 10),
+          color: "#2b3b4a",
+          addedAt: Date.now()
+        };
+      });
+      tracks.length = 0;
+      tracks.push(...newTracks);
+      render();
+    }
+  } catch (e) {
+    console.error("차트 불러오기 실패:", e);
+  }
+}
+fetchTopTracks();
 render();
 
 // 딥링크 및 URL 파라미터 제어
