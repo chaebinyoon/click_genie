@@ -92,7 +92,7 @@ button {
 }
 
 .header {
-  height: 59px;
+  height: 50px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -102,8 +102,8 @@ button {
 }
 
 .logo {
-  width: 110px;
-  height: 44px;
+  width: 140px;
+  height: 50px;
   position: relative;
   overflow: hidden;
   border: 0;
@@ -113,8 +113,8 @@ button {
 }
 
 .logo img {
-  width: 110px;
-  height: 36px;
+  width: 140px;
+  height: 44px;
   object-fit: contain;
   position: static;
   display: block;
@@ -608,11 +608,12 @@ button {
 }
 
 .tabs {
-  height: 50px;
+  height: 62px;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   gap: 4px;
+  padding-bottom: 12px;
 }
 
 .tab {
@@ -634,7 +635,7 @@ button {
 }
 
 .home-indicator {
-  height: 34px;
+  display: none !important;
   display: flex;
   justify-content: center;
   align-items: flex-end;
@@ -1422,7 +1423,7 @@ button {
 }
 
 .pld-edit-home-indicator {
-  height: 22px;
+  display: none !important;
   display: flex;
   justify-content: center;
   align-items: center;
