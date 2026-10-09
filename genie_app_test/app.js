@@ -353,8 +353,8 @@ function searchTrackButton(track, index) {
         <div style="display: flex; align-items: center; margin-left: auto;">
           <button data-action="play-search" data-index="${index}" style="background: none; border: none; padding: 10px; cursor: pointer;">
             ${track.previewUrl
-              ? (isPlayingNow && !state.paused ? '<span style="font-size:16px; color:#141414;">❚❚</span>' : '<span style="font-size:16px; color:#141414;">▶</span>')
-              : ""}
+      ? (isPlayingNow && !state.paused ? '<span style="font-size:16px; color:#141414;">❚❚</span>' : '<span style="font-size:16px; color:#141414;">▶</span>')
+      : ""}
           </button>
           <button data-action="song-more" style="background: none; border: none; padding: 10px; cursor: pointer; color: #888;">⋮</button>
         </div>
@@ -551,14 +551,15 @@ function libraryMainScreen() {
         <h1>내음악</h1>
         <div class="lib-header-right">
           <button class="lib-pass-btn" data-action="pass">이용권</button>
+          <button class="avatar" data-action="profile" style="width:32px;height:32px;border-radius:50%;padding:0;background:none;"><img src="assets/frame_14.png" width="32" height="32" alt="프로필" style="border-radius:50%;" /></button>
         </div>
       </div>
       <div class="lib-quick-grid">
-        <button class="lib-quick-card" data-action="quick-menu" data-type="like"><span class="icon">♡</span><span>좋아요</span></button>
-        <button class="lib-quick-card" data-action="quick-menu" data-type="album"><span class="icon">♬</span><span>내 앨범</span></button>
-        <button class="lib-quick-card" data-action="quick-menu" data-type="recent"><span class="icon">🕒</span><span>최근들은곡</span></button>
-        <button class="lib-quick-card" data-action="quick-menu" data-type="mag"><span class="icon">📰</span><span>MY 매거진</span></button>
-        <button class="lib-quick-card" data-action="quick-menu" data-type="dj"><span class="icon">👤</span><span>구독 DJ</span></button>
+        <button class="lib-quick-card" data-action="quick-menu" data-type="like"><span class="icon" style="font-size:16px; font-weight: 300;">♡</span><span>좋아요</span></button>
+        <button class="lib-quick-card" data-action="quick-menu" data-type="album"><span class="icon" style="font-size:16px; font-weight: 300;">⊟</span><span>보관함</span></button>
+        <button class="lib-quick-card" data-action="quick-menu" data-type="recent"><span class="icon" style="font-size:16px; font-weight: 300;">🕒</span><span>최근 재생한</span></button>
+        <button class="lib-quick-card" data-action="quick-menu" data-type="most"><span class="icon" style="font-size:16px; font-weight: 300;">▶</span><span>많이 재생한</span></button>
+        <button class="lib-quick-card" data-action="quick-menu" data-type="dj"><span class="icon" style="font-size:16px; font-weight: 300;">☺</span><span>구독 DJ</span></button>
       </div>
       <div class="lib-section-head">
         <h2>내 플레이리스트</h2>
@@ -566,14 +567,13 @@ function libraryMainScreen() {
       <div class="lib-meta-row">
         <span class="lib-count-badge">전체 <span>${myPlaylists.length}</span></span>
         <div class="lib-filter-controls">
-          <button class="lib-sort-btn" data-action="open-sort-sheet">${state.sortOrderLabel} ▾</button>
-          <span>|</span>
-          <button class="lib-edit-btn" data-action="open-edit-mode">편집</button>
+          <button class="lib-sort-btn" data-action="open-sort-sheet">${state.sortOrderLabel} ∨</button>
+          <button class="lib-edit-btn" data-action="open-edit-mode" style="margin-left: 8px;">편집</button>
         </div>
       </div>
       <div class="lib-actions-row">
         <button class="lib-action-btn" data-action="new-playlist">+ 새로 만들기</button>
-        <button class="lib-action-btn" data-action="smart-add-songs">+ 다이나믹 곡 추가</button>
+        <button class="lib-action-btn" data-action="smart-add-songs"><span style="font-size: 16px; margin-right: 6px;">⛶</span> 이미지로 곡 등록</button>
       </div>
       <div class="lib-playlist-list">
         ${plCards}
@@ -880,7 +880,7 @@ function queueScreen() {
         ${observerEl}
       </div>
 
-      ${state.queueEdit ? `
+      ${state.queueEdit && state.sheet !== "save-to-playlist" ? `
         <div class="pld-edit-toolbar-wrap">
           ${selectedCount > 0 ? `<div class="pld-count-badge-floating">${selectedCount}</div>` : ""}
           <div class="pld-edit-toolbar">
@@ -995,7 +995,19 @@ function sheet() {
 
 function miniPlayer() {
   const track = currentTrack();
-  if (!track) return "";
+  if (!track) {
+    return `
+      <div class="mini">
+        <div class="now" style="justify-content: center; color: #141414; font-size: 14px; font-weight: 500;">재생할 곡을 추가해 주세요.</div>
+        <div class="controls">
+          <button data-action="prev" aria-label="이전" style="color:#000;">⏮</button>
+          <button class="play" data-action="toggle" aria-label="재생" style="color:#000;">▶</button>
+          <button data-action="next" aria-label="다음" style="color:#000;">⏭</button>
+          <button class="queue" data-action="queue" aria-label="재생목록" style="color:#000;">☰</button>
+        </div>
+      </div>
+    `;
+  }
   return `
       <div class="mini" >
       <div class="now"><strong>${track.title}</strong><span>${track.artist}</span></div>
@@ -1025,11 +1037,11 @@ function render() {
   };
 
   if (state.showQueue) {
-    app.innerHTML = `${queueScreen()}${sheet()}${sortBottomSheet()}${saveToPlaylistSheet()} `;
+    app.innerHTML = `${queueScreen()}${sheet()}${sortBottomSheet()}${saveToPlaylistSheet()}${typeof promptModal !== 'undefined' ? promptModal() : ''} `;
   } else {
     const showGlobalHeader = state.tab !== "library";
     const showChips = state.tab === "home" && state.screen === "home";
-    const isEditing = state.tab === "library" && state.libraryView === "edit";
+    const isEditing = state.tab === "library" && state.libraryView === "edit" && state.sheet !== "save-to-playlist";
     const isSearchEditing = state.tab === "search" && state.selectedSearchIds && state.selectedSearchIds.length > 0 && state.sheet !== "save-to-playlist";
     const selectedCount = state.selectedSongIds.length;
     let body;
@@ -1070,7 +1082,7 @@ function render() {
           </div>
         </div>
         `
-        : `<div class="dock">
+          : `<div class="dock">
         ${miniPlayer()}
         <nav class="tabs">${tabs.map((tab) => `<button class="tab${state.tab === tab.id ? " is-on" : ""}" data-action="tab" data-tab="${tab.id}"><img src="${tab.icon}" width="24" height="24" alt="" />${tab.label}</button>`).join("")}</nav>
       </div>`
@@ -1078,6 +1090,7 @@ function render() {
       ${sheet()}
       ${sortBottomSheet()}
       ${saveToPlaylistSheet()}
+      ${typeof promptModal !== 'undefined' ? promptModal() : ''}
       ${state.toastMessage ? `
       <div class="toast-container" style="position: fixed; bottom: 85px; left: 50%; transform: translateX(-50%); background: #1a1a1a; color: white; padding: 14px 20px; border-radius: 12px; display: flex; align-items: center; justify-content: space-between; width: 90%; max-width: 340px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); z-index: 10000; animation: fadein 0.3s;">
         <span style="font-size: 15px; font-weight: 400;">${state.toastMessage}</span>
@@ -1159,10 +1172,23 @@ function setupIntersectionObserver() {
 }
 
 // --- 6. 이벤트 핸들러 ---
+function getSelectedTracksToSave() {
+  if (state.selectedSearchIds && state.selectedSearchIds.length > 0) {
+    return state.searchResults.filter(t => state.selectedSearchIds.includes(t.id.toString()));
+  } else if (state.selectedQueueIds && state.selectedQueueIds.length > 0) {
+    return state.queueTracks.filter((t, i) => state.selectedQueueIds.includes((t.id || (i + 1)).toString()));
+  } else if (state.selectedSongIds && state.selectedSongIds.length > 0) {
+    const pl = getCurrentPlaylist();
+    if (pl) return pl.tracks.filter(t => state.selectedSongIds.includes(t.id.toString()));
+  }
+  return [];
+}
+
 function saveToPlaylistSheet() {
   if (state.sheet !== "save-to-playlist") return "";
-  
-  const selectedCount = state.selectedSearchIds.length;
+
+  const selectedTracks = getSelectedTracksToSave();
+  const selectedCount = selectedTracks.length;
   const plList = myPlaylists.map(pl => `
     <div data-action="search-save-to-specific" data-id="${pl.id}" style="display: flex; align-items: center; gap: 16px; margin-bottom: 20px; cursor: pointer;">
       <div style="width: 56px; height: 56px; border-radius: 8px; overflow: hidden; background: ${pl.color};">
@@ -1193,6 +1219,24 @@ function saveToPlaylistSheet() {
       
       <div style="margin-top: 32px; text-align: center;">
         <button data-action="close-sheet" style="font-size: 16px; color: #888; font-weight: 500;">취소</button>
+      </div>
+    </div>
+  `;
+}
+
+function promptModal() {
+  if (!state.promptType) return "";
+  const today = new Date();
+  const dateStr = `${today.getFullYear()}.${String(today.getMonth() + 1).padStart(2, '0')}.${String(today.getDate()).padStart(2, '0')}`;
+  
+  return `
+    <div class="sheet-overlay" style="z-index: 100;" data-action="prompt-cancel"></div>
+    <div style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 280px; background: #fff; border-radius: 16px; padding: 24px; z-index: 101; box-shadow: 0 4px 20px rgba(0,0,0,0.15); display: flex; flex-direction: column; align-items: center;">
+      <div style="font-size: 18px; font-weight: 700; margin-bottom: 24px; color: #000;">플레이리스트명</div>
+      <input type="text" id="prompt-input" placeholder="${dateStr}" style="width: 100%; height: 48px; background: #f8f8f8; border: none; border-radius: 8px; padding: 0 16px; font-size: 15px; color: #141414; box-sizing: border-box; margin-bottom: 24px; outline: none;" />
+      <div style="display: flex; width: 100%;">
+        <button data-action="prompt-cancel" style="flex: 1; height: 48px; background: none; border: none; font-size: 15px; color: #888; font-weight: 500; cursor: pointer;">취소</button>
+        <button data-action="prompt-confirm" style="flex: 1; height: 48px; background: none; border: none; font-size: 15px; color: #0096fd; font-weight: 600; cursor: pointer;">확인</button>
       </div>
     </div>
   `;
@@ -1236,7 +1280,7 @@ app.addEventListener("click", (event) => {
     if (state.selectedSearchIds.length === 0) return;
     const selectedTracks = state.searchResults.filter(t => state.selectedSearchIds.includes(t.id.toString()));
     if (selectedTracks.length === 0) return;
-    
+
     if (action === "search-play-selected") {
       const first = selectedTracks[0];
       state.nowPlaying = { title: first.title, artist: first.artist, color: first.color || "#2b3b4a", previewUrl: first.previewUrl, cover: first.coverUrl };
@@ -1248,7 +1292,7 @@ app.addEventListener("click", (event) => {
       }
       state.paused = false;
     }
-    
+
     selectedTracks.forEach(track => {
       const newTrack = {
         id: Date.now() + Math.random(),
@@ -1263,49 +1307,25 @@ app.addEventListener("click", (event) => {
       if (existingIdx > -1) state.queueTracks.splice(existingIdx, 1);
       state.queueTracks.push(newTrack);
     });
-    
+
     state.selectedSearchIds = [];
     return render();
   } else if (action === "search-save-selected") {
     state.sheet = "save-to-playlist";
     return render();
   } else if (action === "search-save-create-new") {
-    const title = prompt("새 플레이리스트 이름을 입력하세요:", "내 플레이리스트");
-    if (title) {
-      const newPlaylist = {
-        id: "pl_" + Date.now().toString(),
-        title: title,
-        color: "#6b7280",
-        tracks: []
-      };
-      const selectedTracks = state.searchResults.filter(t => state.selectedSearchIds.includes(t.id.toString()));
-      selectedTracks.forEach(track => {
-        newPlaylist.tracks.push({
-          id: Date.now() + Math.random(),
-          title: track.title,
-          artist: track.artist,
-          cover: track.coverUrl,
-          previewUrl: track.previewUrl,
-          color: track.color || "#2b3b4a",
-          addedAt: Date.now()
-        });
-      });
-      myPlaylists.push(newPlaylist);
-      alert(`'${title}'이(가) 생성되었고 ${selectedTracks.length}곡이 담겼습니다.`);
-      state.selectedSearchIds = [];
-      state.sheet = null;
-      return render();
-    }
+    state.promptType = "search-save-create-new";
+    return render();
   } else if (action === "search-save-to-specific") {
     const pl = myPlaylists.find(p => p.id.toString() === id.toString());
     if (pl) {
-      const selectedTracks = state.searchResults.filter(t => state.selectedSearchIds.includes(t.id.toString()));
+      const selectedTracks = getSelectedTracksToSave();
       selectedTracks.forEach(track => {
         const newTrack = {
           id: Date.now() + Math.random(),
           title: track.title,
           artist: track.artist,
-          cover: track.coverUrl,
+          cover: track.coverUrl || track.cover,
           previewUrl: track.previewUrl,
           color: track.color || "#2b3b4a",
           addedAt: Date.now()
@@ -1316,6 +1336,8 @@ app.addEventListener("click", (event) => {
       });
       alert(`선택한 ${selectedTracks.length}곡을 '${pl.title}'에 담았습니다.`);
       state.selectedSearchIds = [];
+      state.selectedQueueIds = [];
+      state.selectedSongIds = [];
       state.sheet = null;
       return render();
     }
@@ -1488,9 +1510,8 @@ app.addEventListener("click", (event) => {
     }
     return render();
   } else if (action === "queue-add-to") {
-    alert("선택한 곡이 보관함에 추가되었습니다.");
-    state.queueEdit = false;
-    state.selectedQueueIds = [];
+    if (state.selectedQueueIds.length === 0) return alert("담을 곡을 선택해주세요.");
+    state.sheet = "save-to-playlist";
     return render();
   } else if (action === "queue-zap") {
     const randomIdx = Math.floor(Math.random() * state.queueTracks.length);
@@ -1691,12 +1712,48 @@ app.addEventListener("click", (event) => {
 
     return render();
   } else if (action === "new-playlist") {
-    const title = prompt("새 플레이리스트 제목을 입력하세요:", "새 플레이리스트");
-    if (title && title.trim()) {
+    state.promptType = "new-playlist";
+    return render();
+  } else if (action === "prompt-cancel") {
+    state.promptType = null;
+    return render();
+  } else if (action === "prompt-confirm") {
+    const input = document.getElementById("prompt-input");
+    const title = input.value.trim() || input.placeholder;
+    const type = state.promptType;
+    state.promptType = null;
+    
+    if (type === "search-save-create-new") {
+      const newPlaylist = {
+        id: "pl_" + Date.now().toString(),
+        title: title,
+        color: "#6b7280",
+        tracks: []
+      };
+      const selectedTracks = getSelectedTracksToSave();
+      selectedTracks.forEach(track => {
+        newPlaylist.tracks.push({
+          id: Date.now() + Math.random(),
+          title: track.title,
+          artist: track.artist,
+          cover: track.coverUrl || track.cover,
+          previewUrl: track.previewUrl,
+          color: track.color || "#2b3b4a",
+          addedAt: Date.now()
+        });
+      });
+      myPlaylists.push(newPlaylist);
+      alert(`'${title}'이(가) 생성되었고 ${selectedTracks.length}곡이 담겼습니다.`);
+      state.selectedSearchIds = [];
+      state.selectedQueueIds = [];
+      state.selectedSongIds = [];
+      state.sheet = null;
+      return render();
+    } else if (type === "new-playlist") {
       const newId = "pl" + (myPlaylists.length + 1);
       myPlaylists.unshift({
         id: newId,
-        title: title.trim(),
+        title: title,
         sub: "총 0곡",
         time: "0분",
         color: "#6bbba6",
@@ -1705,6 +1762,7 @@ app.addEventListener("click", (event) => {
       state.currentPlaylistId = newId;
       state.libraryView = "detail";
       state.pldVisibleCount = 30;
+      return render();
     }
   } else if (action === "smart-add-songs") {
     alert("AI 취향 기반 다이나믹 곡 추가가 활성화되었습니다!");
@@ -1817,8 +1875,7 @@ app.addEventListener("click", (event) => {
     return render();
   } else if (action === "edit-add-to") {
     if (state.selectedSongIds.length === 0) return alert("담을 곡을 선택해주세요.");
-    alert(`선택한 ${state.selectedSongIds.length}개 곡을 보관함 또는 다른 플레이리스트에 담았습니다.`);
-    state.selectedSongIds = [];
+    state.sheet = "save-to-playlist";
     return render();
   }
 

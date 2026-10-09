@@ -147,13 +147,13 @@ button {
 }
 
 .pass {
-  width: 40px;
-  height: 22px;
-  border: 1px solid #000;
-  border-radius: 5px;
-  font-size: 10px;
-  font-weight: 500;
-  color: #404040;
+  padding: 0 10px;
+  height: 26px;
+  border: 1.5px solid #000;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #000;
   display: grid;
   place-items: center;
   background: #fff;
@@ -739,15 +739,16 @@ button {
 }
 
 .lib-pass-btn {
-  height: 24px;
+  height: 26px;
   padding: 0 10px;
-  border: 1px solid #000;
-  border-radius: 6px;
+  border: 1.5px solid #000;
+  border-radius: 4px;
   font-size: 11px;
-  font-weight: 500;
-  color: #222;
+  font-weight: 700;
+  color: #000;
   display: flex;
   align-items: center;
+  background: #fff;
 }
 
 /* 퀵 액션 카드 (2열 그리드) */
