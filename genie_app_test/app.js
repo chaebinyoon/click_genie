@@ -60,6 +60,19 @@ const state = {
   searchHasMore: false,
   isLoadingMoreSearch: false,
   nowPlaying: null,
+  showFullPlayer: false,
+
+  // 오디오 상태
+  externalTracks: [],
+  audioEpisodesJazz: [],
+  audioEpisodesClassic: [],
+  audioDetail: null,
+  audioDetailEpisodes: [],
+  audioDetailVisibleCount: 20,
+  isAudioDetailLoading: false,
+  audioSearchQuery: "",
+  audioSearchResults: [],
+  isAudioSearching: false,
 
   // 내음악 & 플레이리스트 상태
   libraryView: "main",
@@ -105,6 +118,27 @@ const audioPlayer = new Audio();
 audioPlayer.addEventListener("ended", () => {
   state.paused = true;
   render();
+});
+
+function formatTimeStr(sec) {
+  if (isNaN(sec) || !isFinite(sec)) return "00:00";
+  const m = Math.floor(sec / 60);
+  const s = Math.floor(sec % 60);
+  return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+}
+
+window.isProgressDragging = false;
+
+audioPlayer.addEventListener("timeupdate", () => {
+  const progressEl = document.getElementById("full-player-progress");
+  const currentTimeEl = document.getElementById("full-player-current-time");
+  if (progressEl && currentTimeEl) {
+    if (window.isProgressDragging) return;
+    const current = audioPlayer.currentTime;
+    const duration = audioPlayer.duration || 30;
+    progressEl.style.width = `${(current / duration) * 100}%`;
+    currentTimeEl.innerText = formatTimeStr(current);
+  }
 });
 
 // --- 3. Last.fm 연동 안내 ---
@@ -270,8 +304,49 @@ async function loadMoreSearchResults() {
 function visibleTracks() {
   return state.expanded ? tracks : tracks.slice(0, 4);
 }
+
+async function fetchAudioEpisodes() {
+  if (state.audioEpisodesJazz.length === 0) {
+    try {
+      const resJazz = await fetch("https://itunes.apple.com/search?term=%EC%9D%8C%EC%95%85%ED%86%A0%ED%81%AC&entity=podcast&limit=6&country=kr");
+      const dataJazz = await resJazz.json();
+      state.audioEpisodesJazz = dataJazz.results;
+
+      const resClassic = await fetch("https://itunes.apple.com/search?term=%ED%81%B4%EB%9E%98%EC%8B%9D&entity=podcast&limit=6&country=kr");
+      const dataClassic = await resClassic.json();
+      state.audioEpisodesClassic = dataClassic.results;
+      render();
+    } catch (e) {
+      console.error(e);
+    }
+  }
+}
 function currentTrack() {
-  return state.nowPlaying ? state.nowPlaying : state.index >= 0 && tracks[state.index] ? tracks[state.index] : { title: "재생 중인 곡이 없습니다", artist: "", color: "#e0e0e0" };
+  if (state.nowPlaying) return state.nowPlaying;
+  if (state.index >= 0 && state.queueTracks[state.index]) return state.queueTracks[state.index];
+  if (state.index >= 0 && tracks[state.index]) return tracks[state.index];
+  return { title: "재생 중인 곡이 없습니다", artist: "", color: "#e0e0e0" };
+}
+
+async function performAudioSearch(q) {
+  state.audioSearchQuery = q;
+  if (!q) {
+    state.audioSearchResults = [];
+    state.isAudioSearching = false;
+    return render();
+  }
+  state.isAudioSearching = true;
+  render();
+  try {
+    const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(q)}&entity=podcast&limit=12&country=kr`);
+    const data = await res.json();
+    state.audioSearchResults = data.results;
+  } catch (e) {
+    console.error(e);
+  } finally {
+    state.isAudioSearching = false;
+    render();
+  }
 }
 
 function play(index) {
@@ -784,7 +859,7 @@ function queueScreen() {
   let listTracks = state.queueTracks;
   if (state.queueTab === "my") listTracks = tracks;
   else if (state.queueTab === "fast") listTracks = tracks.slice(0, 6);
-  else if (state.queueTab === "external") listTracks = defaultPlaylistSongs.slice(5, 15);
+  else if (state.queueTab === "external") listTracks = state.externalTracks || [];
   else if (state.queueTab === "hires") listTracks = tracks.slice(2, 7);
 
   if (state.queueSearchQuery.trim()) {
@@ -824,7 +899,7 @@ function queueScreen() {
           <div class="pld-drag-handle" data-action="queue-drag" data-id="${trackId}">≡</div>
         ` : `
           <div class="queue-song-meta">
-            <span class="queue-song-time">00:30</span>
+            <span class="queue-song-time">${track.time || "00:30"}</span>
             <button class="queue-song-more" data-action="queue-track-more" data-id="${trackId}">⋮</button>
           </div>
         `}
@@ -876,6 +951,11 @@ function queueScreen() {
       </div>
 
       <div class="queue-song-list">
+        ${state.queueTab === "external" ? `
+          <div style="padding: 16px; text-align: center; border-bottom: 1px solid #f4f4f4; margin-bottom: 8px;">
+            <button data-action="go-audio-tab" style="padding: 12px 24px; background: #0096fd; color: #fff; border: none; border-radius: 24px; font-weight: bold; font-size: 15px; cursor: pointer; box-shadow: 0 2px 8px rgba(0,150,253,0.3);">오디오 바로가기</button>
+          </div>
+        ` : ""}
         ${queueItems}
         ${observerEl}
       </div>
@@ -1010,7 +1090,7 @@ function miniPlayer() {
   }
   return `
       <div class="mini" >
-      <div class="now"><strong>${track.title}</strong><span>${track.artist}</span></div>
+      <div class="now" data-action="open-full-player" style="cursor: pointer;"><strong>${track.title}</strong><span>${track.artist}</span></div>
       <div class="controls">
         <button data-action="prev" aria-label="이전">⏮</button>
         <button class="play" data-action="toggle" aria-label="${state.paused ? "재생" : "일시정지"}">${state.paused ? "▶" : "❚❚"}</button>
@@ -1020,6 +1100,55 @@ function miniPlayer() {
     </div> `;
 }
 
+function fullPlayerScreen() {
+  const track = currentTrack();
+  if (!track) return "";
+  
+  const cover = track.cover || track.artworkUrl600 || track.artworkUrl100 || "";
+  const title = track.title || "";
+  const artist = track.artist || "";
+  
+  return `
+    <div id="full-player-container" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1000; background: #333; color: #fff; display: flex; flex-direction: column; transform: translateY(0); transition: transform 0.3s ease;">
+      <div style="display: flex; align-items: center; justify-content: space-between; padding: 16px 20px;">
+        <button data-action="close-full-player" style="background: none; border: none; color: #fff; font-size: 32px; font-weight: 300;">⌄</button>
+        <div style="flex:1;"></div>
+      </div>
+      
+      <div style="flex: 1; display: flex; align-items: center; justify-content: center; padding: 20px;">
+        <img src="${cover}" style="width: 100%; max-width: 320px; aspect-ratio: 1; border-radius: 8px; object-fit: cover; box-shadow: 0 10px 30px rgba(0,0,0,0.5);" />
+      </div>
+      
+      <div style="padding: 0 24px 40px;">
+        <div style="margin-bottom: 24px;">
+          <h2 style="font-size: 22px; font-weight: 700; margin: 0 0 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${title}</h2>
+          <div style="font-size: 15px; color: #aaa;">${artist}</div>
+        </div>
+        
+        <div style="margin-bottom: 32px;">
+          <div id="full-player-progress-wrapper" style="height: 20px; display: flex; align-items: center; cursor: pointer; margin: -8px 0; touch-action: none;">
+            <div style="height: 4px; background: #555; border-radius: 2px; position: relative; width: 100%; pointer-events: none;">
+              <div id="full-player-progress" style="height: 100%; background: #0096fd; width: 0%; border-radius: 2px; pointer-events: none;"></div>
+            </div>
+          </div>
+          <div style="display: flex; justify-content: space-between; margin-top: 8px; font-size: 12px; color: #aaa;">
+            <span id="full-player-current-time">00:00</span>
+            <span id="full-player-duration">${formatTimeStr(audioPlayer.duration || 30)}</span>
+          </div>
+        </div>
+        
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: 0 20px;">
+          <button data-action="seek-backward" style="background: none; border: none; color: #fff; font-size: 24px;">↺</button>
+          <button data-action="prev" style="background: none; border: none; color: #fff; font-size: 28px;">⏮</button>
+          <button data-action="toggle" style="background: none; border: none; color: #fff; font-size: 40px;">${state.paused ? "▶" : "❚❚"}</button>
+          <button data-action="next" style="background: none; border: none; color: #fff; font-size: 28px;">⏭</button>
+          <button data-action="seek-forward" style="background: none; border: none; color: #fff; font-size: 24px;">↻</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
 function render() {
   // [요구사항 1] 전체 DOM 갱신 시 스크롤 포지션 리셋 방지 로직
   const mainEl = document.querySelector(".main");
@@ -1027,6 +1156,7 @@ function render() {
   const pldSearchEl = document.querySelector(".pld-search-view");
   const pldEditEl = document.querySelector(".pld-edit-view");
   const albumEl = document.getElementById("search-album-container");
+  const audioDetailEl = document.getElementById("audio-detail-scroll-container");
 
   const scrollState = {
     main: mainEl ? mainEl.scrollTop : 0,
@@ -1034,10 +1164,17 @@ function render() {
     pldSearch: pldSearchEl ? pldSearchEl.scrollTop : 0,
     pldEdit: pldEditEl ? pldEditEl.scrollTop : 0,
     searchAlbum: albumEl ? albumEl.scrollLeft : 0,
+    audioDetail: audioDetailEl ? audioDetailEl.scrollTop : 0,
   };
 
   if (state.showQueue) {
     app.innerHTML = `${queueScreen()}${sheet()}${sortBottomSheet()}${saveToPlaylistSheet()}${typeof promptModal !== 'undefined' ? promptModal() : ''} `;
+  } else if (state.showAudio) {
+    app.innerHTML = `${audioScreen()}${sheet()}${typeof promptModal !== 'undefined' ? promptModal() : ''}
+      <div class="dock" style="z-index: 51;">
+        ${miniPlayer()}
+      </div>
+    `;
   } else {
     const showGlobalHeader = state.tab !== "library";
     const showChips = state.tab === "home" && state.screen === "home";
@@ -1091,11 +1228,18 @@ function render() {
       ${sortBottomSheet()}
       ${saveToPlaylistSheet()}
       ${typeof promptModal !== 'undefined' ? promptModal() : ''}
+    `;
+  }
+
+  // 모든 탭(큐, 오디오, 메인)에 공통으로 들어가는 Toast, Full Player 렌더링
+  if (state.toastMessage || state.showFullPlayer) {
+    app.innerHTML += `
       ${state.toastMessage ? `
       <div class="toast-container" style="position: fixed; bottom: 85px; left: 50%; transform: translateX(-50%); background: #1a1a1a; color: white; padding: 14px 20px; border-radius: 12px; display: flex; align-items: center; justify-content: space-between; width: 90%; max-width: 340px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); z-index: 10000; animation: fadein 0.3s;">
         <span style="font-size: 15px; font-weight: 400;">${state.toastMessage}</span>
         <button data-action="close-toast" style="background: none; border: none; color: #888; font-size: 20px; line-height: 1; padding: 0 0 0 16px; cursor: pointer;">✕</button>
       </div>` : ""}
+      ${state.showFullPlayer ? fullPlayerScreen() : ""}
     `;
   }
 
@@ -1105,15 +1249,114 @@ function render() {
   const newPldSearchEl = document.querySelector(".pld-search-view");
   const newPldEditEl = document.querySelector(".pld-edit-view");
   const newAlbumEl = document.getElementById("search-album-container");
+  const newAudioDetailEl = document.getElementById("audio-detail-scroll-container");
 
   if (newMainEl) newMainEl.scrollTop = scrollState.main;
   if (newQueueEl) newQueueEl.scrollTop = scrollState.queue;
   if (newPldSearchEl) newPldSearchEl.scrollTop = scrollState.pldSearch;
   if (newPldEditEl) newPldEditEl.scrollTop = scrollState.pldEdit;
   if (newAlbumEl) newAlbumEl.scrollLeft = scrollState.searchAlbum;
+  if (newAudioDetailEl) newAudioDetailEl.scrollTop = scrollState.audioDetail;
 
   // Pagination 적용을 위한 IntersectionObserver 바인딩
   setupIntersectionObserver();
+  setupFullPlayerSwipe();
+  setupFullPlayerProgressDrag();
+}
+
+function setupFullPlayerProgressDrag() {
+  const wrapper = document.getElementById("full-player-progress-wrapper");
+  if (!wrapper) return;
+
+  function updateProgress(clientX) {
+    const w = document.getElementById("full-player-progress-wrapper");
+    const progressEl = document.getElementById("full-player-progress");
+    const timeEl = document.getElementById("full-player-current-time");
+    if (!w || !progressEl) return 0;
+    
+    const rect = w.getBoundingClientRect();
+    const x = clientX - rect.left;
+    const ratio = Math.max(0, Math.min(1, x / rect.width));
+    const duration = audioPlayer.duration || 30;
+    
+    progressEl.style.width = `${ratio * 100}%`;
+    if (timeEl) timeEl.innerText = formatTimeStr(duration * ratio);
+    
+    return duration * ratio;
+  }
+
+  // DOM 갱신될 때마다 wrapper에 바인딩
+  wrapper.addEventListener("mousedown", (e) => {
+    window.isProgressDragging = true;
+    updateProgress(e.clientX);
+  });
+  
+  wrapper.addEventListener("touchstart", (e) => {
+    window.isProgressDragging = true;
+    updateProgress(e.touches[0].clientX);
+  }, { passive: true });
+
+  // 전역 이벤트 리스너는 한 번만 바인딩
+  if (!window.progressDragInitialized) {
+    window.progressDragInitialized = true;
+
+    window.addEventListener("mousemove", (e) => {
+      if (!window.isProgressDragging) return;
+      updateProgress(e.clientX);
+    });
+
+    window.addEventListener("mouseup", (e) => {
+      if (!window.isProgressDragging) return;
+      window.isProgressDragging = false;
+      const newTime = updateProgress(e.clientX);
+      audioPlayer.currentTime = newTime;
+    });
+
+    window.addEventListener("touchmove", (e) => {
+      if (!window.isProgressDragging) return;
+      updateProgress(e.touches[0].clientX);
+    }, { passive: true });
+
+    window.addEventListener("touchend", (e) => {
+      if (!window.isProgressDragging) return;
+      window.isProgressDragging = false;
+      if (e.changedTouches && e.changedTouches.length > 0) {
+        const newTime = updateProgress(e.changedTouches[0].clientX);
+        audioPlayer.currentTime = newTime;
+      }
+    });
+  }
+}
+
+function setupFullPlayerSwipe() {
+  const container = document.getElementById("full-player-container");
+  if (!container) return;
+  
+  let startY = 0;
+  let currentY = 0;
+  
+  container.addEventListener("touchstart", (e) => {
+    startY = e.touches[0].clientY;
+    container.style.transition = "none";
+  }, { passive: true });
+  
+  container.addEventListener("touchmove", (e) => {
+    currentY = e.touches[0].clientY - startY;
+    if (currentY > 0) {
+      container.style.transform = `translateY(${currentY}px)`;
+    }
+  }, { passive: true });
+  
+  container.addEventListener("touchend", () => {
+    container.style.transition = "transform 0.3s ease";
+    if (currentY > 150) {
+      state.showFullPlayer = false;
+      render();
+    } else {
+      container.style.transform = `translateY(0)`;
+    }
+    currentY = 0;
+  });
 }
 
 // 3000곡 렌더링 최적화를 위한 Intersection Observer (무한 스크롤 / Pagination 기법)
@@ -1228,7 +1471,7 @@ function promptModal() {
   if (!state.promptType) return "";
   const today = new Date();
   const dateStr = `${today.getFullYear()}.${String(today.getMonth() + 1).padStart(2, '0')}.${String(today.getDate()).padStart(2, '0')}`;
-  
+
   return `
     <div class="sheet-overlay" style="z-index: 100;" data-action="prompt-cancel"></div>
     <div style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 280px; background: #fff; border-radius: 16px; padding: 24px; z-index: 101; box-shadow: 0 4px 20px rgba(0,0,0,0.15); display: flex; flex-direction: column; align-items: center;">
@@ -1237,6 +1480,128 @@ function promptModal() {
       <div style="display: flex; width: 100%;">
         <button data-action="prompt-cancel" style="flex: 1; height: 48px; background: none; border: none; font-size: 15px; color: #888; font-weight: 500; cursor: pointer;">취소</button>
         <button data-action="prompt-confirm" style="flex: 1; height: 48px; background: none; border: none; font-size: 15px; color: #0096fd; font-weight: 600; cursor: pointer;">확인</button>
+      </div>
+    </div>
+  `;
+}
+
+function audioScreen() {
+  if (state.audioDetail) return audioDetailScreen();
+
+  const renderCards = (episodes, type) => {
+    if (episodes.length === 0) return `<div style="padding: 20px; color: #888;">로딩중...</div>`;
+    return `<div style="display: flex; gap: 12px; overflow-x: auto; padding: 0 20px 20px; scrollbar-width: none;">
+      ${episodes.map(ep => `
+        <div data-action="audio-detail" data-id="${ep.trackId}" data-type="${type}" style="flex: none; width: 140px; cursor: pointer;">
+          <div style="width: 140px; height: 140px; border-radius: 8px; overflow: hidden; margin-bottom: 8px; position: relative;">
+            <img src="${ep.artworkUrl600}" style="width: 100%; height: 100%; object-fit: cover;" />
+            <div style="position: absolute; bottom: 8px; right: 8px; width: 28px; height: 28px; background: rgba(0,0,0,0.5); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 12px;">▶</div>
+          </div>
+          <div style="font-size: 14px; font-weight: 600; color: #141414; line-height: 1.3; margin-bottom: 4px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${ep.trackName}</div>
+          <div style="font-size: 13px; color: #888; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${ep.collectionName}</div>
+        </div>
+      `).join("")}
+    </div>`;
+  };
+
+  return `
+    <div style="flex: 1; min-height: 0; display: flex; flex-direction: column; background: #fff;">
+      <div style="display: flex; align-items: center; justify-content: space-between; height: 56px; padding: 0 16px; border-bottom: 1px solid #f4f4f4; flex: none;">
+        <button data-action="close-audio" style="font-size: 24px; background: none; border: none; cursor: pointer;">‹</button>
+        <div style="font-size: 18px; font-weight: 700;">오디오</div>
+        <button class="avatar" style="width:32px;height:32px;border-radius:50%;padding:0;background:none;"><img src="assets/frame_14.png" width="32" height="32" alt="프로필" style="border-radius:50%;" /></button>
+      </div>
+      
+      <div style="padding: 16px 20px 0; flex: none;">
+        <div style="position: relative; width: 100%; height: 48px;">
+          <input type="text" id="audio-search-input" value="${state.audioSearchQuery || ''}" placeholder="팟캐스트, 에피소드 검색" style="width: 100%; height: 100%; border: none; background: #f4f4f4; border-radius: 8px; padding: 0 16px 0 44px; font-size: 15px; box-sizing: border-box; outline: none;" />
+          <span style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); font-size: 16px;">🔍</span>
+        </div>
+      </div>
+      
+      <div style="flex: 1; overflow-y: auto;">
+        ${state.isAudioSearching ? `<div style="padding: 40px; text-align: center; color: #888; font-weight: 500;">검색 중...</div>` :
+          (state.audioSearchQuery && state.audioSearchResults.length > 0) ? `
+          <div style="padding: 24px 20px 16px;">
+            <h2 style="font-size: 18px; font-weight: 800; margin: 0;">검색 결과</h2>
+          </div>
+          <div style="padding: 0 20px 20px; display: flex; flex-direction: column; gap: 16px;">
+            ${state.audioSearchResults.map(ep => `
+              <div data-action="audio-detail" data-id="${ep.trackId}" data-type="search" style="display: flex; gap: 12px; align-items: center; cursor: pointer;">
+                <div style="width: 64px; height: 64px; border-radius: 8px; overflow: hidden; flex: none; position: relative;">
+                  <img src="${ep.artworkUrl600}" style="width: 100%; height: 100%; object-fit: cover;" />
+                </div>
+                <div style="flex: 1; min-width: 0;">
+                  <div style="font-size: 15px; font-weight: 600; color: #141414; line-height: 1.3; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${ep.trackName}</div>
+                  <div style="font-size: 13px; color: #888; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${ep.collectionName}</div>
+                </div>
+              </div>
+            `).join("")}
+          </div>
+        ` : (state.audioSearchQuery && state.audioSearchResults.length === 0) ? `
+          <div style="padding: 40px; text-align: center; color: #888; font-weight: 500;">검색 결과가 없습니다.</div>
+        ` : `
+          <div style="display: flex; align-items: flex-end; justify-content: space-between; padding: 24px 20px 16px;">
+            <h2 style="font-size: 20px; font-weight: 800; margin: 0;">소소한 일상 음악 토크</h2>
+          </div>
+          ${renderCards(state.audioEpisodesJazz, "jazz")}
+          
+          <div style="display: flex; align-items: flex-end; justify-content: space-between; padding: 24px 20px 16px;">
+            <h2 style="font-size: 20px; font-weight: 800; margin: 0;">쉽게 듣는 클래식</h2>
+          </div>
+          ${renderCards(state.audioEpisodesClassic, "classic")}
+        `}
+      </div>
+    </div>
+  `;
+}
+
+function audioDetailScreen() {
+  const ep = state.audioDetail;
+  const dateStr = ep.releaseDate ? ep.releaseDate.substring(0, 10).replace(/-/g, ".") : "";
+  
+  let epsHtml = "";
+  if (state.isAudioDetailLoading) {
+    epsHtml = `<div style="text-align: center; padding: 20px; color: #888;">에피소드 불러오는 중...</div>`;
+  } else if (state.audioDetailEpisodes && state.audioDetailEpisodes.length > 0) {
+    epsHtml = state.audioDetailEpisodes.slice(0, state.audioDetailVisibleCount).map(e => {
+      const eDate = e.releaseDate ? e.releaseDate.substring(0, 10).replace(/-/g, ".") : "";
+      return `
+        <div data-action="audio-play-episode" data-epid="${e.trackId}" style="display: flex; gap: 12px; align-items: center; padding: 12px 0; border-bottom: 1px solid #f4f4f4; cursor: pointer;">
+          <div style="width: 48px; height: 48px; border-radius: 4px; overflow: hidden; flex: none;">
+            <img src="${e.artworkUrl600 || ep.artworkUrl600}" style="width: 100%; height: 100%; object-fit: cover;" />
+          </div>
+          <div style="flex: 1; min-width: 0;">
+            <div style="font-size: 14px; font-weight: 600; color: #141414; line-height: 1.3; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${e.trackName}</div>
+            <div style="font-size: 12px; color: #888;">${eDate}</div>
+          </div>
+          <button style="background: none; border: none; font-size: 18px; color: #888;">⋮</button>
+        </div>
+      `;
+    }).join("");
+  }
+
+  return `
+    <div style="flex: 1; min-height: 0; display: flex; flex-direction: column; background: #fff;">
+      <div style="display: flex; align-items: center; justify-content: space-between; height: 56px; padding: 0 16px;">
+        <button data-action="audio-detail-back" style="font-size: 24px; background: none; border: none; cursor: pointer;">‹</button>
+        <button style="font-size: 20px; background: none; border: none; font-weight: bold; color: #333;">⋮</button>
+      </div>
+      <div id="audio-detail-scroll-container" style="flex: 1; overflow-y: auto; padding: 0 20px 40px;" onscroll="handleAudioDetailScroll(this)">
+        <img src="${ep.artworkUrl600}" style="width: 100%; aspect-ratio: 1; border-radius: 8px; object-fit: cover; margin-bottom: 24px;" />
+        <h1 style="font-size: 24px; font-weight: 800; color: #141414; line-height: 1.3; margin: 0 0 12px;">${ep.trackName || ep.collectionName}</h1>
+        <div style="font-size: 15px; color: #555; margin-bottom: 16px;">${ep.artistName || ep.collectionName}</div>
+        
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px;">
+          <div style="color: #888; font-size: 15px;">💬 ${ep.trackCount ? ep.trackCount + " 에피소드" : "53"}</div>
+        </div>
+        
+        <button data-action="audio-play-all" style="width: 100%; background: #f4f4f4; border: none; border-radius: 8px; padding: 16px; font-size: 16px; font-weight: bold; color: #141414; margin-bottom: 24px; display: flex; align-items: center; justify-content: center; gap: 8px;"><span style="font-size: 14px;">▶</span> 전체듣기</button>
+        
+        <div style="font-size: 15px; color: #333; line-height: 1.6; white-space: pre-wrap; margin-bottom: 32px;">${ep.collectionName}의 팟캐스트입니다.</div>
+        
+        <h2 style="font-size: 18px; font-weight: 800; margin: 0 0 12px;">에피소드</h2>
+        ${epsHtml}
       </div>
     </div>
   `;
@@ -1251,6 +1616,56 @@ function showToast(message) {
       render();
     }
   }, 2500);
+}
+
+window.handleAudioDetailScroll = function(el) {
+  if (el.scrollHeight - el.scrollTop <= el.clientHeight + 150) {
+    if (state.audioDetailEpisodes && state.audioDetailVisibleCount < state.audioDetailEpisodes.length) {
+      state.audioDetailVisibleCount += 20;
+      render();
+    }
+  }
+};
+
+function formatMs(ms) {
+  if (!ms) return "00:30";
+  const s = Math.floor(ms / 1000);
+  const h = Math.floor(s / 3600);
+  const m = Math.floor((s % 3600) / 60);
+  const sec = s % 60;
+  if (h > 0) return `${h}:${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
+  return `${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
+}
+
+function playAudioEpisode(ep, podcast) {
+  const previewUrl = ep.previewUrl || ep.episodeUrl;
+  const newTrack = {
+    id: "audio_" + ep.trackId + "_" + Date.now(),
+    title: ep.trackName,
+    artist: podcast.collectionName || podcast.artistName,
+    cover: ep.artworkUrl600 || podcast.artworkUrl600,
+    previewUrl: previewUrl,
+    color: "#1c2b39",
+    time: formatMs(ep.trackTimeMillis),
+    addedAt: Date.now()
+  };
+  
+  // 외부목록 중복 제거 (previewUrl 기준)
+  state.externalTracks = state.externalTracks.filter(t => t.previewUrl !== previewUrl);
+  
+  state.externalTracks.push(newTrack);
+  state.nowPlaying = newTrack;
+  state.paused = false;
+  
+  if (previewUrl) {
+    if (audioPlayer.src !== previewUrl) audioPlayer.src = previewUrl;
+    audioPlayer.play();
+  } else {
+    audioPlayer.pause();
+  }
+  
+  showToast("오디오가 외부목록에 추가되었습니다.");
+  render();
 }
 
 app.addEventListener("click", (event) => {
@@ -1399,6 +1814,83 @@ app.addEventListener("click", (event) => {
     state.selectedQueueIds = [];
     state.queueVisibleCount = 30;
     return render();
+  } else if (action === "go-audio-tab") {
+    state.showQueue = false;
+    state.showAudio = true;
+    fetchAudioEpisodes();
+    return render();
+  } else if (action === "close-audio") {
+    state.showAudio = false;
+    return render();
+  } else if (action === "audio-detail") {
+    const id = target.closest("[data-id]").getAttribute("data-id");
+    const type = target.closest("[data-type]").getAttribute("data-type");
+    let list = type === "jazz" ? state.audioEpisodesJazz : type === "classic" ? state.audioEpisodesClassic : state.audioSearchResults;
+    state.audioDetail = list.find(e => (e.trackId || e.collectionId).toString() === id);
+    
+    state.audioDetailEpisodes = [];
+    state.audioDetailVisibleCount = 20;
+    state.isAudioDetailLoading = true;
+    render();
+    
+    if (state.audioDetail) {
+      fetch(`https://itunes.apple.com/lookup?id=${state.audioDetail.collectionId || state.audioDetail.trackId}&entity=podcastEpisode&limit=200&country=kr`)
+        .then(r => r.json())
+        .then(data => {
+          state.audioDetailEpisodes = data.results.filter(r => r.wrapperType === 'podcastEpisode');
+          state.isAudioDetailLoading = false;
+          render();
+        })
+        .catch(err => {
+          console.error(err);
+          state.isAudioDetailLoading = false;
+          render();
+        });
+    }
+    return;
+  } else if (action === "audio-detail-back") {
+    state.audioDetail = null;
+    return render();
+  } else if (action === "audio-play-all") {
+    if (state.audioDetailEpisodes && state.audioDetailEpisodes.length > 0) {
+      const podcast = state.audioDetail;
+      state.audioDetailEpisodes.forEach((ep, idx) => {
+        const previewUrl = ep.previewUrl || ep.episodeUrl;
+        const newTrack = {
+          id: "audio_" + ep.trackId + "_" + Date.now() + "_" + idx,
+          title: ep.trackName,
+          artist: podcast.collectionName || podcast.artistName,
+          cover: ep.artworkUrl600 || podcast.artworkUrl600,
+          previewUrl: previewUrl,
+          color: "#1c2b39",
+          time: formatMs(ep.trackTimeMillis),
+          addedAt: Date.now()
+        };
+        state.externalTracks = state.externalTracks.filter(t => t.previewUrl !== previewUrl);
+        state.externalTracks.push(newTrack);
+        
+        if (idx === 0) {
+          state.nowPlaying = newTrack;
+          state.paused = false;
+          if (previewUrl) {
+            if (audioPlayer.src !== previewUrl) audioPlayer.src = previewUrl;
+            audioPlayer.play();
+          } else {
+            audioPlayer.pause();
+          }
+        }
+      });
+      showToast("모든 에피소드가 외부목록에 추가되었습니다.");
+      render();
+    } else {
+      showToast("에피소드가 없습니다.");
+    }
+    return;
+  } else if (action === "audio-play-episode") {
+    const epId = target.closest("[data-epid]").getAttribute("data-epid");
+    const ep = state.audioDetailEpisodes.find(e => e.trackId.toString() === epId);
+    if (ep) playAudioEpisode(ep, state.audioDetail);
+    return;
   } else if (action === "queue-toggle-search") {
     state.queueShowSearch = !state.queueShowSearch;
     if (!state.queueShowSearch) state.queueSearchQuery = "";
@@ -1426,7 +1918,7 @@ app.addEventListener("click", (event) => {
     let listTracks = state.queueTracks;
     if (state.queueTab === "my") listTracks = tracks;
     else if (state.queueTab === "fast") listTracks = tracks.slice(0, 6);
-    else if (state.queueTab === "external") listTracks = defaultPlaylistSongs.slice(5, 15);
+    else if (state.queueTab === "external") listTracks = state.externalTracks || [];
     else if (state.queueTab === "hires") listTracks = tracks.slice(2, 7);
 
     const song = listTracks[idx];
@@ -1457,7 +1949,7 @@ app.addEventListener("click", (event) => {
     let listTracks = state.queueTracks;
     if (state.queueTab === "my") listTracks = tracks;
     else if (state.queueTab === "fast") listTracks = tracks.slice(0, 6);
-    else if (state.queueTab === "external") listTracks = defaultPlaylistSongs.slice(5, 15);
+    else if (state.queueTab === "external") listTracks = state.externalTracks || [];
     else if (state.queueTab === "hires") listTracks = tracks.slice(2, 7);
 
     if (state.selectedQueueIds.length === listTracks.length) {
@@ -1722,7 +2214,7 @@ app.addEventListener("click", (event) => {
     const title = input.value.trim() || input.placeholder;
     const type = state.promptType;
     state.promptType = null;
-    
+
     if (type === "search-save-create-new") {
       const newPlaylist = {
         id: "pl_" + Date.now().toString(),
@@ -1981,6 +2473,25 @@ app.addEventListener("click", (event) => {
     } else {
       alert("이 곡은 30초 미리듣기를 제공하지 않습니다.");
     }
+  } else if (action === "open-full-player") {
+    state.showFullPlayer = true;
+    render();
+  } else if (action === "close-full-player") {
+    state.showFullPlayer = false;
+    render();
+  } else if (action === "seek-backward") {
+    audioPlayer.currentTime = Math.max(0, audioPlayer.currentTime - 15);
+    return;
+  } else if (action === "seek-forward") {
+    audioPlayer.currentTime = Math.min(audioPlayer.duration || 30, audioPlayer.currentTime + 15);
+    return;
+  } else if (action === "seek") {
+    const rect = target.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const ratio = Math.max(0, Math.min(1, x / rect.width));
+    const duration = audioPlayer.duration || 30;
+    audioPlayer.currentTime = duration * ratio;
+    return;
   } else if (action === "toggle") {
     if (state.nowPlaying) {
       if (state.nowPlaying.previewUrl) {
@@ -2007,7 +2518,7 @@ app.addEventListener("click", (event) => {
     if (state.showQueue) {
       if (state.queueTab === "my") listTracks = tracks;
       else if (state.queueTab === "fast") listTracks = tracks.slice(0, 6);
-      else if (state.queueTab === "external") listTracks = defaultPlaylistSongs.slice(5, 15);
+      else if (state.queueTab === "external") listTracks = state.externalTracks || [];
       else if (state.queueTab === "hires") listTracks = tracks.slice(2, 7);
     }
 
@@ -2087,6 +2598,8 @@ app.addEventListener("keydown", (event) => {
   } else if (event.key === "Enter" && event.target.id === "add-song-search-input") {
     const btn = document.querySelector('[data-action="do-add-song-search"]');
     if (btn) btn.click();
+  } else if (event.key === "Enter" && event.target.id === "audio-search-input") {
+    performAudioSearch(event.target.value.trim());
   }
 });
 
