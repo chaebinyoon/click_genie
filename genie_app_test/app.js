@@ -385,10 +385,9 @@ function homeScreen() {
     <section class="section">
       <div class="section-head">
         <button data-action="chart"><h2>지니차트 <span>TOP 200</span> &gt;</h2></button>
-        <button class="listen-all" data-action="listen-all">전체듣기</button>
       </div>
       <div class="track-list">${visibleTracks().map(trackButton).join("")}</div>
-      ${state.expanded ? "" : `<button class="more" data-action="more">더보기</button>`}
+      ${state.expanded ? "" : `<button class="more" data-action="play-chart-all">▶ 전체재생</button>`}
     </section>
     <section class="label-block">
       <div class="section-head"><button class="plain-title" data-action="labels">레이블 PICK &gt;</button></div>
@@ -592,7 +591,7 @@ function playlistDetailScreen() {
     const isCurrent = state.nowPlaying?.title === track.title;
     const coverBg = track.cover ? `background-image:url(${track.cover}); background-size:cover;` : `background-color:${track.color}`;
     return `
-      <div class="pld-song-item${isCurrent ? " is - playing" : ""}" >
+      <div class="pld-song-item${isCurrent ? " is-playing" : ""}" >
           <div class="pld-song-thumb" style="${coverBg}"></div>
           <div class="pld-song-info" data-action="play-custom" data-title="${encodeURIComponent(track.title)}" data-artist="${encodeURIComponent(track.artist)}" data-color="${track.color}" data-preview="${track.previewUrl || ''}" data-cover="${track.cover || ''}">
             <div class="pld-song-title">${track.title}</div>
@@ -624,8 +623,6 @@ function playlistDetailScreen() {
           <div class="pld-songs-count">수록곡 <span>${pl.tracks.length}곡</span></div>
           <div class="pld-songs-actions">
             <button data-action="add-song-to-pl">+ 곡추가</button>
-            <span>|</span>
-            <button data-action="open-edit-mode">편집</button>
           </div>
         </div>
         <div class="pld-search-bar" data-action="open-playlist-search">
@@ -737,11 +734,12 @@ function playlistEditScreen() {
   const hasMore = state.pldEditVisibleCount < pl.tracks.length;
 
   const editItems = visibleTracks.map((track) => {
-    const isChecked = state.selectedSongIds.includes(track.id);
+    const isChecked = state.selectedSongIds.includes(track.id.toString());
+    const coverBg = track.cover ? `background-image:url(${track.cover}); background-size:cover;` : `background-color:${track.color}`;
     return `
-      <div class="pld-edit-item" data-action="toggle-song-select" data-id="${track.id}" >
+      <div class="pld-edit-item" draggable="true" data-action="toggle-song-select" data-id="${track.id}" >
         <div class="pld-checkbox${isChecked ? " is-checked" : ""}" ></div>
-          <div class="pld-song-thumb" style="background:${track.color}"></div>
+          <div class="pld-song-thumb" style="${coverBg}"></div>
           <div class="pld-song-info">
             <div class="pld-song-title">${track.title}</div>
             <div class="pld-song-artist">${track.artist}</div>
@@ -803,13 +801,13 @@ function queueScreen() {
   const queueItems = visibleQueue.map((track) => {
     // 실제 listTracks 배열 내 인덱스를 추적합니다.
     const idx = listTracks.indexOf(track);
-    const trackId = track.id || (idx + 1);
+    const trackId = (track.id || (idx + 1)).toString();
     const isSelected = state.selectedQueueIds.includes(trackId);
     const isPlaying = current && current.title === track.title;
-    const coverBg = track.cover ? `background - image: url(${track.cover}); background - size: cover; ` : `background - color:${track.color || "#8CC7BF"}; `;
+    const coverBg = track.cover ? `background-image:url(${track.cover}); background-size:cover;` : `background-color:${track.color || "#8CC7BF"};`;
 
     return `
-      <div class="queue-song-item${isPlaying ? " is - playing" : ""}" data-action="${state.queueEdit ? "queue - toggle - select" : "queue - play - track"}" data-id="${trackId}" data-index="${idx}" >
+      <div class="queue-song-item${isPlaying ? " is-playing" : ""}" ${state.queueEdit ? 'draggable="true"' : ''} data-action="${state.queueEdit ? "queue-toggle-select" : "queue-play-track"}" data-id="${trackId}" data-index="${idx}" >
         ${state.queueEdit ? `<div class="pld-checkbox${isSelected ? " is-checked" : ""}"></div>` : ""}
         <div class="queue-song-thumb" style="${coverBg}">
           ${isPlaying && !state.queueEdit ? '<div class="queue-play-badge">▶</div>' : ""}
@@ -1176,6 +1174,7 @@ app.addEventListener("click", (event) => {
     state.tab = "home";
     state.chip = "홈";
     state.screen = "home";
+    state.expanded = false;
   } else if (action === "pass") {
     state.sheet = "pass";
   } else if (action === "close-sheet") {
@@ -1252,7 +1251,7 @@ app.addEventListener("click", (event) => {
     }
     return render();
   } else if (action === "queue-toggle-select") {
-    const songId = Number(target.dataset.id);
+    const songId = target.dataset.id.toString();
     const pos = state.selectedQueueIds.indexOf(songId);
     if (pos > -1) state.selectedQueueIds.splice(pos, 1);
     else state.selectedQueueIds.push(songId);
@@ -1267,22 +1266,22 @@ app.addEventListener("click", (event) => {
     if (state.selectedQueueIds.length === listTracks.length) {
       state.selectedQueueIds = [];
     } else {
-      state.selectedQueueIds = listTracks.map((t, i) => t.id || (i + 1));
+      state.selectedQueueIds = listTracks.map((t, i) => (t.id || (i + 1)).toString());
     }
     return render();
   } else if (action === "queue-move-top") {
     if (state.selectedQueueIds.length > 0) {
-      const selected = state.queueTracks.filter((t, i) => state.selectedQueueIds.includes(t.id || (i + 1)));
-      const remaining = state.queueTracks.filter((t, i) => !state.selectedQueueIds.includes(t.id || (i + 1)));
+      const selected = state.queueTracks.filter((t, i) => state.selectedQueueIds.includes((t.id || (i + 1)).toString()));
+      const remaining = state.queueTracks.filter((t, i) => !state.selectedQueueIds.includes((t.id || (i + 1)).toString()));
       state.queueTracks = [...selected, ...remaining];
     }
     return render();
   } else if (action === "queue-move-up") {
     if (state.selectedQueueIds.length > 0) {
       for (let i = 1; i < state.queueTracks.length; i++) {
-        const trackId = state.queueTracks[i].id || (i + 1);
+        const trackId = (state.queueTracks[i].id || (i + 1)).toString();
         if (state.selectedQueueIds.includes(trackId)) {
-          const prevId = state.queueTracks[i - 1].id || i;
+          const prevId = (state.queueTracks[i - 1].id || i).toString();
           if (!state.selectedQueueIds.includes(prevId)) {
             const temp = state.queueTracks[i];
             state.queueTracks[i] = state.queueTracks[i - 1];
@@ -1295,9 +1294,9 @@ app.addEventListener("click", (event) => {
   } else if (action === "queue-move-down") {
     if (state.selectedQueueIds.length > 0) {
       for (let i = state.queueTracks.length - 2; i >= 0; i--) {
-        const trackId = state.queueTracks[i].id || (i + 1);
+        const trackId = (state.queueTracks[i].id || (i + 1)).toString();
         if (state.selectedQueueIds.includes(trackId)) {
-          const nextId = state.queueTracks[i + 1].id || (i + 2);
+          const nextId = (state.queueTracks[i + 1].id || (i + 2)).toString();
           if (!state.selectedQueueIds.includes(nextId)) {
             const temp = state.queueTracks[i];
             state.queueTracks[i] = state.queueTracks[i + 1];
@@ -1309,7 +1308,7 @@ app.addEventListener("click", (event) => {
     return render();
   } else if (action === "queue-delete") {
     if (state.selectedQueueIds.length > 0) {
-      state.queueTracks = state.queueTracks.filter((t, i) => !state.selectedQueueIds.includes(t.id || (i + 1)));
+      state.queueTracks = state.queueTracks.filter((t, i) => !state.selectedQueueIds.includes((t.id || (i + 1)).toString()));
       state.selectedQueueIds = [];
     }
     return render();
@@ -1383,17 +1382,19 @@ app.addEventListener("click", (event) => {
     state.libraryView = "detail";
     state.selectedSongIds = [];
   } else if (action === "toggle-song-select") {
-    const songId = Number(target.dataset.id);
+    const songId = target.dataset.id.toString();
     const idx = state.selectedSongIds.indexOf(songId);
     if (idx > -1) state.selectedSongIds.splice(idx, 1);
     else state.selectedSongIds.push(songId);
+    return render();
   } else if (action === "toggle-select-all") {
     const pl = getCurrentPlaylist();
     if (state.selectedSongIds.length === pl.tracks.length) {
       state.selectedSongIds = [];
     } else {
-      state.selectedSongIds = pl.tracks.map((t) => t.id);
+      state.selectedSongIds = pl.tracks.map((t) => t.id.toString());
     }
+    return render();
   } else if (action === "play-playlist") {
     const pl = myPlaylists.find((p) => p.id === target.dataset.id);
     if (pl && pl.tracks.length > 0) {
@@ -1414,6 +1415,51 @@ app.addEventListener("click", (event) => {
         audioPlayer.pause();
       }
       state.paused = false;
+
+      // 전체 듣기 시 큐에 모두 추가
+      pl.tracks.forEach(track => {
+        const newTrack = {
+          id: Date.now() + Math.random(),
+          title: track.title,
+          artist: track.artist,
+          cover: track.cover,
+          previewUrl: track.previewUrl,
+          color: track.color || "#2b3b4a",
+          addedAt: Date.now()
+        };
+        const existingIdx = state.queueTracks.findIndex(t => t.title === newTrack.title && t.artist === newTrack.artist);
+        if (existingIdx > -1) state.queueTracks.splice(existingIdx, 1);
+        state.queueTracks.push(newTrack);
+      });
+    }
+    return render();
+  } else if (action === "play-chart-all" || action === "listen-all") {
+    if (tracks && tracks.length > 0) {
+      const first = tracks[0];
+      state.nowPlaying = { title: first.title, artist: first.artist, color: first.color, previewUrl: first.previewUrl, cover: first.cover };
+      if (first.previewUrl) {
+        if (audioPlayer.src !== first.previewUrl) audioPlayer.src = first.previewUrl;
+        audioPlayer.play();
+      } else {
+        audioPlayer.pause();
+      }
+      state.paused = false;
+
+      // 전체 듣기 시 큐에 모두 추가
+      tracks.forEach(track => {
+        const newTrack = {
+          id: Date.now() + Math.random(),
+          title: track.title,
+          artist: track.artist,
+          cover: track.cover,
+          previewUrl: track.previewUrl,
+          color: track.color || "#2b3b4a",
+          addedAt: Date.now()
+        };
+        const existingIdx = state.queueTracks.findIndex(t => t.title === newTrack.title && t.artist === newTrack.artist);
+        if (existingIdx > -1) state.queueTracks.splice(existingIdx, 1);
+        state.queueTracks.push(newTrack);
+      });
     }
     return render();
   } else if (action === "play-custom") {
@@ -1431,6 +1477,21 @@ app.addEventListener("click", (event) => {
       audioPlayer.pause();
     }
     state.paused = false;
+
+    // 재생목록에 추가
+    const newTrack = {
+      id: Date.now(),
+      title,
+      artist,
+      cover,
+      previewUrl,
+      color,
+      addedAt: Date.now()
+    };
+    const existingIdx = state.queueTracks.findIndex(t => t.title === newTrack.title && t.artist === newTrack.artist);
+    if (existingIdx > -1) state.queueTracks.splice(existingIdx, 1);
+    state.queueTracks.push(newTrack);
+
     return render();
   } else if (action === "new-playlist") {
     const title = prompt("새 플레이리스트 제목을 입력하세요:", "새 플레이리스트");
@@ -1456,6 +1517,7 @@ app.addEventListener("click", (event) => {
     const selected = pl.tracks.filter((t) => state.selectedSongIds.includes(t.id));
     const unselected = pl.tracks.filter((t) => !state.selectedSongIds.includes(t.id));
     pl.tracks = [...selected, ...unselected]; // 원본 배열 순서 갱신 (커스텀 순서 유지)
+    return render();
   } else if (action === "edit-move-up") {
     const pl = getCurrentPlaylist();
     if (state.selectedSongIds.length === 0) return alert("이동할 곡을 선택해주세요.");
@@ -1466,6 +1528,7 @@ app.addEventListener("click", (event) => {
         pl.tracks[i - 1] = temp;
       }
     }
+    return render();
   } else if (action === "edit-move-down") {
     const pl = getCurrentPlaylist();
     if (state.selectedSongIds.length === 0) return alert("이동할 곡을 선택해주세요.");
@@ -1476,6 +1539,7 @@ app.addEventListener("click", (event) => {
         pl.tracks[i + 1] = temp;
       }
     }
+    return render();
   } else if (action === "add-song-to-pl") {
     state.libraryView = "add-song";
     state.addSongTab = "queue";
@@ -1540,7 +1604,7 @@ app.addEventListener("click", (event) => {
             });
           }
         });
-        pl.tracks.push(...tracksToAdd);
+        pl.tracks.unshift(...tracksToAdd);
         pl.sub = `총 ${pl.tracks.length} 곡`;
       }
       state.libraryView = "detail";
@@ -1553,9 +1617,12 @@ app.addEventListener("click", (event) => {
       pl.sub = `총 ${pl.tracks.length} 곡`;
       state.selectedSongIds = [];
     }
+    return render();
   } else if (action === "edit-add-to") {
     if (state.selectedSongIds.length === 0) return alert("담을 곡을 선택해주세요.");
     alert(`선택한 ${state.selectedSongIds.length}개 곡을 보관함 또는 다른 플레이리스트에 담았습니다.`);
+    state.selectedSongIds = [];
+    return render();
   }
 
   // 오디오 및 검색 제어
@@ -1763,6 +1830,77 @@ app.addEventListener("keydown", (event) => {
     const btn = document.querySelector('[data-action="do-add-song-search"]');
     if (btn) btn.click();
   }
+});
+
+// Drag and Drop Logic
+let draggedItemInfo = null;
+
+app.addEventListener("dragstart", (e) => {
+  const item = e.target.closest(".pld-edit-item") || e.target.closest(".queue-song-item");
+  if (item) {
+    draggedItemInfo = item.dataset.id;
+    e.dataTransfer.effectAllowed = "move";
+    e.dataTransfer.setData("text/plain", item.dataset.id);
+    setTimeout(() => item.classList.add("dragging"), 0);
+  }
+});
+
+app.addEventListener("dragover", (e) => {
+  const item = e.target.closest(".pld-edit-item") || e.target.closest(".queue-song-item");
+  if (item && item.dataset.id !== draggedItemInfo) {
+    e.preventDefault();
+    item.style.borderTop = "2px solid #141414";
+  }
+});
+
+app.addEventListener("dragleave", (e) => {
+  const item = e.target.closest(".pld-edit-item") || e.target.closest(".queue-song-item");
+  if (item) {
+    item.style.borderTop = "";
+  }
+});
+
+app.addEventListener("drop", (e) => {
+  const item = e.target.closest(".pld-edit-item") || e.target.closest(".queue-song-item");
+  if (item) {
+    e.preventDefault();
+    item.style.borderTop = "";
+    const sourceId = draggedItemInfo;
+    const targetId = item.dataset.id;
+
+    if (sourceId && targetId && sourceId !== targetId) {
+      // Check if playlist or queue
+      if (item.classList.contains("pld-edit-item")) {
+        const pl = getCurrentPlaylist();
+        if (pl) {
+          const fromIdx = pl.tracks.findIndex(t => t.id.toString() === sourceId);
+          const toIdx = pl.tracks.findIndex(t => t.id.toString() === targetId);
+          if (fromIdx > -1 && toIdx > -1) {
+            const track = pl.tracks.splice(fromIdx, 1)[0];
+            pl.tracks.splice(toIdx, 0, track);
+            render();
+          }
+        }
+      } else if (item.classList.contains("queue-song-item")) {
+        const fromIdx = state.queueTracks.findIndex(t => (t.id || t.title).toString() === sourceId);
+        const toIdx = state.queueTracks.findIndex(t => (t.id || t.title).toString() === targetId);
+        if (fromIdx > -1 && toIdx > -1) {
+          const track = state.queueTracks.splice(fromIdx, 1)[0];
+          state.queueTracks.splice(toIdx, 0, track);
+          render();
+        }
+      }
+    }
+  }
+  const allItems = document.querySelectorAll(".pld-edit-item, .queue-song-item");
+  allItems.forEach(i => { i.classList.remove("dragging"); i.style.borderTop = ""; });
+  draggedItemInfo = null;
+});
+
+app.addEventListener("dragend", (e) => {
+  const allItems = document.querySelectorAll(".pld-edit-item, .queue-song-item");
+  allItems.forEach(i => { i.classList.remove("dragging"); i.style.borderTop = ""; });
+  draggedItemInfo = null;
 });
 
 // --- 6. 초기 실행 및 인기차트 로딩 ---
