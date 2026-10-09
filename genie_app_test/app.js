@@ -81,6 +81,13 @@ const state = {
   selectedSongIds: [],
   playlistSearchQuery: "",
 
+  // 곡 추가 상태
+  addSongTab: "queue",
+  addSongSearchQuery: "",
+  addSongSearchResults: [],
+  addSongSelectedIds: [],
+  isAddSongSearching: false,
+
   // [요구사항 1] 대용량 렌더링(Pagination) 최적화를 위한 렌더 카운트 및 옵저버 상태
   pldVisibleCount: 30,
   queueVisibleCount: 30,
@@ -525,7 +532,7 @@ function getSortedTracks(songList, sortOrder) {
 function libraryMainScreen() {
   const plCards = myPlaylists.map((pl) => `
       <div class="lib-playlist-item" data-action="open-playlist" data-id="${pl.id}" >
-        <div class="lib-pl-thumb" style="background:${pl.color}"></div>
+        <div class="lib-pl-thumb" style="${pl.tracks.length > 0 && pl.tracks[0].cover ? `background-image:url(${pl.tracks[0].cover}); background-size:cover;` : `background-color:${pl.color}`}"></div>
         <div class="lib-pl-info">
           <div class="lib-pl-title">${pl.title}</div>
           <div class="lib-pl-sub">${pl.sub}</div>
@@ -583,15 +590,16 @@ function playlistDetailScreen() {
 
   const trackItems = visibleTracks.map((track) => {
     const isCurrent = state.nowPlaying?.title === track.title;
+    const coverBg = track.cover ? `background-image:url(${track.cover}); background-size:cover;` : `background-color:${track.color}`;
     return `
       <div class="pld-song-item${isCurrent ? " is - playing" : ""}" >
-          <div class="pld-song-thumb" style="background:${track.color}"></div>
-          <div class="pld-song-info" data-action="play-custom" data-title="${encodeURIComponent(track.title)}" data-artist="${encodeURIComponent(track.artist)}" data-color="${track.color}">
+          <div class="pld-song-thumb" style="${coverBg}"></div>
+          <div class="pld-song-info" data-action="play-custom" data-title="${encodeURIComponent(track.title)}" data-artist="${encodeURIComponent(track.artist)}" data-color="${track.color}" data-preview="${track.previewUrl || ''}" data-cover="${track.cover || ''}">
             <div class="pld-song-title">${track.title}</div>
             <div class="pld-song-artist">${track.artist}</div>
           </div>
           <div class="pld-song-actions">
-            <button class="lib-pl-play-btn" data-action="play-custom" data-title="${encodeURIComponent(track.title)}" data-artist="${encodeURIComponent(track.artist)}" data-color="${track.color}">▶</button>
+            <button class="lib-pl-play-btn" data-action="play-custom" data-title="${encodeURIComponent(track.title)}" data-artist="${encodeURIComponent(track.artist)}" data-color="${track.color}" data-preview="${track.previewUrl || ''}" data-cover="${track.cover || ''}">▶</button>
             <button class="lib-pl-more-btn" data-action="song-more">⋮</button>
           </div>
         </div> `;
@@ -606,7 +614,7 @@ function playlistDetailScreen() {
         <button class="lib-pl-more-btn" data-action="pl-more" data-id="${pl.id}">⋮</button>
       </div>
       <div class="pld-hero">
-        <div class="pld-hero-thumb" style="background:${pl.color}"></div>
+        <div class="pld-hero-thumb" style="${pl.tracks.length > 0 && pl.tracks[0].cover ? `background-image:url(${pl.tracks[0].cover}); background-size:cover;` : `background-color:${pl.color}`}"></div>
         <div class="pld-hero-title">${pl.title}</div>
         <div class="pld-hero-sub">수록곡 ${pl.tracks.length}곡 • ${pl.time}</div>
         <button class="pld-play-all-btn" data-action="play-playlist-all">▶ 전체듣기</button>
@@ -682,18 +690,21 @@ function playlistSearchScreen() {
   const visibleFiltered = filtered.slice(0, state.pldSearchVisibleCount);
   const hasMore = state.pldSearchVisibleCount < filtered.length;
 
-  const listItems = visibleFiltered.map((track) => `
+  const listItems = visibleFiltered.map((track) => {
+    const coverBg = track.cover ? `background-image:url(${track.cover}); background-size:cover;` : `background-color:${track.color}`;
+    return `
       <div class="pld-song-item" >
-        <div class="pld-song-thumb" style="background:${track.color}"></div>
-        <div class="pld-song-info" data-action="play-custom" data-title="${encodeURIComponent(track.title)}" data-artist="${encodeURIComponent(track.artist)}" data-color="${track.color}">
+        <div class="pld-song-thumb" style="${coverBg}"></div>
+        <div class="pld-song-info" data-action="play-custom" data-title="${encodeURIComponent(track.title)}" data-artist="${encodeURIComponent(track.artist)}" data-color="${track.color}" data-preview="${track.previewUrl || ''}" data-cover="${track.cover || ''}">
           <div class="pld-song-title">${track.title}</div>
           <div class="pld-song-artist">${track.artist}</div>
         </div>
         <div class="pld-song-actions">
-          <button class="lib-pl-play-btn" data-action="play-custom" data-title="${encodeURIComponent(track.title)}" data-artist="${encodeURIComponent(track.artist)}" data-color="${track.color}">▶</button>
+          <button class="lib-pl-play-btn" data-action="play-custom" data-title="${encodeURIComponent(track.title)}" data-artist="${encodeURIComponent(track.artist)}" data-color="${track.color}" data-preview="${track.previewUrl || ''}" data-cover="${track.cover || ''}">▶</button>
           <button class="lib-pl-more-btn">⋮</button>
         </div>
-      </div> `).join("");
+      </div>`
+  }).join("");
 
   const observerEl = hasMore ? `<div id = "pld-search-observer" style="height: 20px;" ></div> ` : "";
 
@@ -897,10 +908,78 @@ function queueScreen() {
     </div> `;
 }
 
+function addSongScreen() {
+  const count = state.addSongSelectedIds.length;
+  let listHtml = "";
+
+  if (state.addSongTab === "queue") {
+    const qList = state.queueTracks;
+    listHtml = qList.length === 0
+      ? `<div style="padding: 60px 0; text-align: center; color: #888;">재생목록이 비어있습니다.</div>`
+      : qList.map(t => {
+        const isSelected = state.addSongSelectedIds.includes(t.id.toString());
+        const coverBg = t.cover ? `background-image:url(${t.cover}); background-size:cover;` : `background-color:${t.color || "#8CC7BF"};`;
+        return `
+            <div class="pld-song-item" data-action="toggle-add-song-select" data-id="${t.id}" style="cursor:pointer; display:flex; align-items:center; padding:12px 16px; border-bottom:1px solid #f4f4f4;">
+              <div class="pld-checkbox${isSelected ? " is-checked" : ""}" style="margin-right:12px;"></div>
+              <div class="pld-song-thumb" style="${coverBg}; width:40px; height:40px; border-radius:4px; margin-right:12px;"></div>
+              <div class="pld-song-info" style="flex:1; min-width:0;">
+                <div class="pld-song-title" style="font-weight:600; font-size:15px; color:#141414; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${t.title}</div>
+                <div class="pld-song-artist" style="font-size:13px; color:#888; margin-top:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${t.artist}</div>
+              </div>
+            </div>`;
+      }).join("");
+  } else {
+    const sList = state.addSongSearchResults;
+    listHtml = `
+      <div style="padding: 16px; display:flex; gap:8px;">
+        <input type="text" id="add-song-search-input" value="${state.addSongSearchQuery}" placeholder="어떤 곡을 추가할까요?" 
+          style="flex: 1; height: 44px; padding: 0 16px; border-radius: 12px; border: none; background: #f0f0f0; font-size: 15px; outline: none;" />
+        <button data-action="do-add-song-search" style="width: 64px; height: 44px; border-radius: 12px; background: #121212; color: #fff; font-weight: 600;">검색</button>
+      </div>
+      ${state.isAddSongSearching
+        ? `<div style="padding: 60px 0; text-align: center; color: #888;">검색 중...</div>`
+        : sList.length > 0
+          ? sList.map(t => {
+            const isSelected = state.addSongSelectedIds.includes(t.id.toString());
+            return `
+                <div class="pld-song-item" data-action="toggle-add-song-select" data-id="${t.id}" style="cursor:pointer; display:flex; align-items:center; padding:12px 16px; border-bottom:1px solid #f4f4f4;">
+                  <div class="pld-checkbox${isSelected ? " is-checked" : ""}" style="margin-right:12px;"></div>
+                  <img src="${t.cover}" style="width:40px; height:40px; border-radius:4px; object-fit:cover; margin-right:12px;" />
+                  <div class="pld-song-info" style="flex:1; min-width:0;">
+                    <div class="pld-song-title" style="font-weight:600; font-size:15px; color:#141414; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${t.title}</div>
+                    <div class="pld-song-artist" style="font-size:13px; color:#888; margin-top:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${t.artist}</div>
+                  </div>
+                </div>`;
+          }).join("")
+          : state.addSongSearchQuery ? `<div style="padding: 60px 0; text-align: center; color: #888;">검색 결과가 없습니다.</div>` : ""
+      }`;
+  }
+
+  return `
+    <div class="pld-page" style="background:#fff; height:100vh; display:flex; flex-direction:column; position:absolute; top:0; left:0; width:100%; z-index:2000;">
+      <div class="pld-top-bar" style="border-bottom:none; display:flex; justify-content:space-between; align-items:center; padding:0 16px; height:56px;">
+        <button class="pld-back-btn" data-action="close-add-song" style="font-size:24px; background:none; border:none; cursor:pointer;">✕</button>
+        <h2 style="font-size:18px; font-weight:700;">곡 추가</h2>
+        <button data-action="submit-add-songs" style="background:none; border:none; font-size:16px; font-weight:600; color:${count > 0 ? '#1ed760' : '#ccc'}; cursor:${count > 0 ? 'pointer' : 'default'};">완료</button>
+      </div>
+      
+      <div style="display:flex; border-bottom:1px solid #eee;">
+        <button data-action="add-song-tab" data-tab="queue" style="flex:1; padding:12px 0; font-size:15px; font-weight:600; background:none; border:none; border-bottom:2px solid ${state.addSongTab === 'queue' ? '#141414' : 'transparent'}; color:${state.addSongTab === 'queue' ? '#141414' : '#888'}; cursor:pointer;">재생목록</button>
+        <button data-action="add-song-tab" data-tab="search" style="flex:1; padding:12px 0; font-size:15px; font-weight:600; background:none; border:none; border-bottom:2px solid ${state.addSongTab === 'search' ? '#141414' : 'transparent'}; color:${state.addSongTab === 'search' ? '#141414' : '#888'}; cursor:pointer;">곡검색</button>
+      </div>
+
+      <div style="overflow-y:auto; flex:1; padding-bottom: 20px;">
+        ${listHtml}
+      </div>
+    </div>`;
+}
+
 function libraryScreen() {
   if (state.libraryView === "detail") return playlistDetailScreen();
   if (state.libraryView === "search") return playlistSearchScreen();
   if (state.libraryView === "edit") return playlistEditScreen();
+  if (state.libraryView === "add-song") return addSongScreen();
   return libraryMainScreen();
 }
 
@@ -1327,7 +1406,13 @@ app.addEventListener("click", (event) => {
     const pl = getCurrentPlaylist();
     if (pl && pl.tracks.length > 0) {
       const first = pl.tracks[0];
-      state.nowPlaying = { title: first.title, artist: first.artist, color: first.color };
+      state.nowPlaying = { title: first.title, artist: first.artist, color: first.color, previewUrl: first.previewUrl, cover: first.cover };
+      if (first.previewUrl) {
+        if (audioPlayer.src !== first.previewUrl) audioPlayer.src = first.previewUrl;
+        audioPlayer.play();
+      } else {
+        audioPlayer.pause();
+      }
       state.paused = false;
     }
     return render();
@@ -1335,7 +1420,16 @@ app.addEventListener("click", (event) => {
     const title = decodeURIComponent(target.dataset.title || "");
     const artist = decodeURIComponent(target.dataset.artist || "");
     const color = target.dataset.color || "#6bbba6";
-    state.nowPlaying = { title, artist, color };
+    const previewUrl = target.dataset.preview || "";
+    const cover = target.dataset.cover || "";
+
+    state.nowPlaying = { title, artist, color, previewUrl, cover };
+    if (previewUrl) {
+      if (audioPlayer.src !== previewUrl) audioPlayer.src = previewUrl;
+      audioPlayer.play();
+    } else {
+      audioPlayer.pause();
+    }
     state.paused = false;
     return render();
   } else if (action === "new-playlist") {
@@ -1381,6 +1475,75 @@ app.addEventListener("click", (event) => {
         pl.tracks[i] = pl.tracks[i + 1];
         pl.tracks[i + 1] = temp;
       }
+    }
+  } else if (action === "add-song-to-pl") {
+    state.libraryView = "add-song";
+    state.addSongTab = "queue";
+    state.addSongSelectedIds = [];
+    state.addSongSearchQuery = "";
+    state.addSongSearchResults = [];
+  } else if (action === "close-add-song") {
+    state.libraryView = "detail";
+  } else if (action === "add-song-tab") {
+    state.addSongTab = target.dataset.tab;
+  } else if (action === "toggle-add-song-select") {
+    const id = target.dataset.id.toString();
+    if (state.addSongSelectedIds.includes(id)) {
+      state.addSongSelectedIds = state.addSongSelectedIds.filter(i => i !== id);
+    } else {
+      state.addSongSelectedIds.push(id);
+    }
+  } else if (action === "do-add-song-search") {
+    const inp = document.getElementById("add-song-search-input");
+    if (inp && inp.value.trim() !== "") {
+      state.addSongSearchQuery = inp.value.trim();
+      state.isAddSongSearching = true;
+      render();
+      fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(state.addSongSearchQuery)}&limit=30&entity=song&country=us`)
+        .then(res => res.json())
+        .then(data => {
+          state.addSongSearchResults = (data.results || []).map(t => ({
+            id: t.trackId.toString(),
+            title: t.trackName,
+            artist: t.artistName,
+            cover: t.artworkUrl100 ? t.artworkUrl100.replace("100x100bb", "300x300bb") : "",
+            previewUrl: t.previewUrl,
+            color: "#2b3b4a"
+          }));
+          state.isAddSongSearching = false;
+          render();
+        })
+        .catch(e => {
+          console.error(e);
+          state.isAddSongSearching = false;
+          render();
+        });
+      return;
+    }
+  } else if (action === "submit-add-songs") {
+    if (state.addSongSelectedIds.length > 0) {
+      const pl = getCurrentPlaylist();
+      if (pl) {
+        const tracksToAdd = [];
+        state.addSongSelectedIds.forEach(id => {
+          let t = state.queueTracks.find(x => x.id.toString() === id);
+          if (!t) t = state.addSongSearchResults.find(x => x.id.toString() === id);
+          if (t) {
+            tracksToAdd.push({
+              id: Date.now() + Math.floor(Math.random() * 10000) + "",
+              title: t.title,
+              artist: t.artist,
+              cover: t.cover,
+              previewUrl: t.previewUrl,
+              color: t.color || "#8CC7BF",
+              addedAt: Date.now()
+            });
+          }
+        });
+        pl.tracks.push(...tracksToAdd);
+        pl.sub = `총 ${pl.tracks.length} 곡`;
+      }
+      state.libraryView = "detail";
     }
   } else if (action === "edit-delete") {
     const pl = getCurrentPlaylist();
@@ -1596,6 +1759,9 @@ app.addEventListener("input", (event) => {
 app.addEventListener("keydown", (event) => {
   if (event.key === "Enter" && event.target.id === "search-input") {
     performSearch(event.target.value);
+  } else if (event.key === "Enter" && event.target.id === "add-song-search-input") {
+    const btn = document.querySelector('[data-action="do-add-song-search"]');
+    if (btn) btn.click();
   }
 });
 
