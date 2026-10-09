@@ -92,12 +92,13 @@ button {
 }
 
 .header {
-  height: 44px;
+  height: 59px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 6px 16px 6px 20px;
+  padding: 14px 20px 13px 20px;
   flex: none;
+  background: #fff;
 }
 
 .logo {
@@ -107,15 +108,16 @@ button {
   overflow: hidden;
   border: 0;
   padding: 0;
+  display: flex;
+  align-items: center;
 }
 
 .logo img {
-  position: absolute;
-  width: 148.72%;
-  height: 215.67%;
-  left: -23.08%;
-  top: -57.84%;
-  max-width: none;
+  width: 78px;
+  height: 32px;
+  object-fit: contain;
+  position: static;
+  display: block;
 }
 
 .header-right {
@@ -123,8 +125,25 @@ button {
   height: 32px;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-end;
   gap: 10px;
+}
+
+.avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: transparent;
+  padding: 0;
+}
+
+.avatar img {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: block;
 }
 
 .pass {
@@ -137,15 +156,6 @@ button {
   color: #404040;
   display: grid;
   place-items: center;
-}
-
-.avatar {
-  width: 25px;
-  height: 25px;
-  border-radius: 16px;
-  box-shadow: 0 0 2px #e8e8e8;
-  display: grid;
-  place-items: center;
   background: #fff;
 }
 
@@ -153,59 +163,95 @@ button {
   height: 44px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 4px 16px;
-  gap: 8px;
+  padding: 4px 0 4px 20px;
   flex: none;
+  background: #fff;
 }
 
 .chip-row {
   display: flex;
-  gap: 5px;
+  gap: 8px;
   min-width: 0;
   flex: 1;
   overflow-x: auto;
   scrollbar-width: none;
+  padding-right: 20px;
 }
 
 .chip-row::-webkit-scrollbar {
   display: none;
 }
 
-.chip,
-.chip-add {
+.chip {
   height: 36px;
   border-radius: 20px;
   padding: 0 16px;
   font-size: 14px;
   white-space: nowrap;
   flex: none;
-}
-
-.chip {
   background: var(--chip);
-  color: #333;
+  color: #333333;
   font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .chip.is-on {
   background: #121212;
-  color: #fff;
+  color: #ffffff;
   font-weight: 600;
-}
-
-.chip-add {
-  width: 39px;
-  padding: 0;
-  background: var(--chip);
-  color: #333;
-  font-weight: 500;
 }
 
 .main {
   flex: 1;
   overflow: auto;
   min-height: 0;
+}
+
+.promo-section {
+  padding: 10px 0 10px 20px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.promo-section::-webkit-scrollbar {
+  display: none;
+}
+
+.promo-banner-wrap {
+  position: relative;
+  width: 415px;
+  height: 279px;
+  flex: none;
+}
+
+.promo-banner-img {
+  width: 415px;
+  height: 279px;
+  border-radius: 20px;
+  object-fit: cover;
+  display: block;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+}
+
+.promo-hotspot {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.promo-hotspot.left {
+  left: 0;
+  width: 50%;
+}
+
+.promo-hotspot.right {
+  right: 0;
+  width: 50%;
 }
 
 .promo-row {
@@ -385,18 +431,23 @@ button {
 }
 
 .more {
-  width: 100%;
+  width: 366px;
   height: 44px;
   border-radius: 10px;
   background: #f6f6f6;
-  color: #333;
+  color: #333333;
   font-size: 15px;
   font-weight: 500;
-  margin-top: 5px;
+  margin: 10px auto 0;
+  display: block;
 }
 
 .label-block {
-  padding: 0 16px 24px;
+  padding: 10px 0 10px;
+}
+
+.label-block .section-head {
+  padding: 0 20px;
 }
 
 .label-block .plain-title {
@@ -410,7 +461,7 @@ button {
   display: flex;
   gap: 10px;
   overflow-x: auto;
-  padding: 10px 0;
+  padding: 8px 0 7px 20px;
   scrollbar-width: none;
 }
 
@@ -424,13 +475,14 @@ button {
   text-align: left;
   display: flex;
   flex-direction: column;
-  gap: 9px;
+  gap: 8px;
 }
 
 .card-cover {
   width: 148px;
   height: 148px;
-  border-radius: 12px;
+  border-radius: 10px;
+  object-fit: cover;
 }
 
 .card-copy {
@@ -438,7 +490,7 @@ button {
   padding: 0 5px;
   font-size: 11px;
   font-weight: 300;
-  line-height: normal;
+  line-height: 13px;
   color: #000;
 }
 
@@ -449,6 +501,10 @@ button {
   padding: 0 5px;
   color: #a6a6a6;
   font-size: 9px;
+}
+
+.magazine-block {
+  padding-bottom: 30px;
 }
 
 .page {
@@ -503,9 +559,9 @@ button {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 16px;
+  padding: 10px 17px;
   border-bottom: 1px solid #f0f0f0;
-  background: #fff;
+  background: #f6f6f6;
 }
 
 .now {
@@ -648,4 +704,1107 @@ button {
   height: 28px;
   border-radius: 4px;
   flex: none;
+}
+
+/* ============================================================
+   내음악 (Library) & 플레이리스트 상세 / 정렬 / 검색 / 편집 화면 스타일
+   ============================================================ */
+
+/* 1. 내음악 메인 화면 */
+.lib-page {
+  padding: 12px 18px 80px;
+  background: #fff;
+}
+
+.lib-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.lib-header h1 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 800;
+  color: #111827;
+  letter-spacing: -0.4px;
+}
+
+.lib-header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.lib-pass-btn {
+  height: 24px;
+  padding: 0 10px;
+  border: 1px solid #000;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 500;
+  color: #222;
+  display: flex;
+  align-items: center;
+}
+
+/* 퀵 액션 카드 (2열 그리드) */
+.lib-quick-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.lib-quick-card {
+  height: 48px;
+  background: #f7f8f9;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  padding: 0 14px;
+  gap: 9px;
+  font-size: 13.5px;
+  font-weight: 500;
+  color: #222;
+  transition: background 0.15s;
+}
+
+.lib-quick-card:hover {
+  background: #edf0f3;
+}
+
+.lib-quick-card .icon {
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #4b5563;
+}
+
+/* 내 플레이리스트 섹션 */
+.lib-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.lib-section-head h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.lib-meta-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12.5px;
+  color: #888;
+  margin-bottom: 12px;
+}
+
+.lib-count-badge {
+  font-weight: 600;
+  color: #111827;
+}
+
+.lib-count-badge span {
+  color: #0096fd;
+  font-weight: 700;
+}
+
+.lib-filter-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.lib-sort-btn,
+.lib-edit-btn {
+  font-size: 12.5px;
+  color: #555;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.lib-actions-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.lib-action-btn {
+  flex: 1;
+  height: 40px;
+  border-radius: 8px;
+  background: #f4f5f7;
+  font-size: 13px;
+  font-weight: 600;
+  color: #333;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  transition: background 0.15s;
+}
+
+.lib-action-btn:hover {
+  background: #e9ecf0;
+}
+
+/* 플레이리스트 목록 카드 */
+.lib-playlist-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.lib-playlist-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 4px 0;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.lib-playlist-item:hover {
+  background: #fafafa;
+}
+
+.lib-pl-thumb {
+  width: 52px;
+  height: 52px;
+  border-radius: 8px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.lib-pl-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.lib-pl-title {
+  font-size: 14.5px;
+  font-weight: 600;
+  color: #141414;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.lib-pl-sub {
+  font-size: 12px;
+  color: #8c8c8c;
+}
+
+.lib-pl-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-right: 4px;
+}
+
+.lib-pl-play-btn {
+  width: 28px;
+  height: 28px;
+  font-size: 13px;
+  color: #111;
+  display: grid;
+  place-items: center;
+}
+
+.lib-pl-more-btn {
+  width: 24px;
+  height: 24px;
+  font-size: 16px;
+  color: #888;
+  display: grid;
+  place-items: center;
+}
+
+/* 2. 플레이리스트 상세 화면 */
+.pld-page {
+  padding: 8px 18px 80px;
+  background: #fff;
+  min-height: 100%;
+}
+
+.pld-top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 40px;
+  margin-bottom: 12px;
+}
+
+.pld-back-btn {
+  font-size: 20px;
+  font-weight: 600;
+  color: #111;
+  padding: 4px 8px 4px 0;
+}
+
+.pld-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.pld-hero-thumb {
+  width: 156px;
+  height: 156px;
+  border-radius: 12px;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+}
+
+.pld-hero-title {
+  font-size: 20px;
+  font-weight: 800;
+  color: #111827;
+  margin-bottom: 4px;
+}
+
+.pld-hero-sub {
+  font-size: 12.5px;
+  color: #888;
+  margin-bottom: 16px;
+}
+
+.pld-play-all-btn {
+  width: 100%;
+  height: 44px;
+  border-radius: 8px;
+  background: #f4f5f7;
+  font-size: 14px;
+  font-weight: 600;
+  color: #111;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: background 0.15s;
+}
+
+.pld-play-all-btn:hover {
+  background: #eaecf0;
+}
+
+/* 수록곡 섹션 */
+.pld-songs-sec {
+  margin-top: 20px;
+}
+
+.pld-songs-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.pld-songs-count {
+  font-size: 15px;
+  font-weight: 700;
+  color: #111;
+}
+
+.pld-songs-count span {
+  color: #0096fd;
+}
+
+.pld-songs-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12.5px;
+  color: #555;
+}
+
+.pld-search-bar {
+  display: flex;
+  align-items: center;
+  height: 40px;
+  background: #f4f5f7;
+  border-radius: 10px;
+  padding: 0 12px;
+  gap: 8px;
+  margin-bottom: 12px;
+  cursor: pointer;
+}
+
+.pld-search-bar input {
+  flex: 1;
+  border: 0;
+  background: transparent;
+  font-size: 13.5px;
+  outline: none;
+  color: #111;
+}
+
+.pld-search-bar .search-icon {
+  font-size: 14px;
+  color: #888;
+}
+
+.pld-ctrl-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  color: #555;
+  padding: 4px 0 10px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.pld-ctrl-left,
+.pld-ctrl-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.pld-ctrl-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  color: #555;
+}
+
+.pld-song-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.pld-song-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 60px;
+  border-bottom: 0.5px solid #f7f7f7;
+}
+
+.pld-song-item.is-playing {
+  background: #f8fbff;
+}
+
+.pld-song-thumb {
+  width: 44px;
+  height: 44px;
+  border-radius: 6px;
+  flex: none;
+}
+
+.pld-song-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.pld-song-title {
+  font-size: 13.5px;
+  font-weight: 500;
+  color: #141414;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pld-song-artist {
+  font-size: 11.5px;
+  color: #8c8c8c;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pld-song-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* 3. 정렬 순 바텀시트 */
+.sort-sheet-back {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: flex-end;
+  z-index: 20;
+  animation: fadeIn 0.15s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+.sort-sheet {
+  width: 100%;
+  background: #fff;
+  border-radius: 18px 18px 0 0;
+  padding: 12px 20px 28px;
+  animation: slideUp 0.2s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+  }
+
+  to {
+    transform: translateY(0);
+  }
+}
+
+.sort-handle {
+  width: 36px;
+  height: 4px;
+  border-radius: 2px;
+  background: #e2e8f0;
+  margin: 4px auto 16px;
+}
+
+.sort-sheet-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #111;
+  margin-bottom: 12px;
+}
+
+.sort-opt-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.sort-opt-item {
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 14.5px;
+  font-weight: 500;
+  color: #333;
+  cursor: pointer;
+  border-bottom: 0.5px solid #f3f4f6;
+}
+
+.sort-opt-item.is-selected {
+  color: #0096fd;
+  font-weight: 700;
+}
+
+.sort-opt-check {
+  color: #0096fd;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.sort-cancel-btn {
+  width: 100%;
+  height: 46px;
+  border-radius: 10px;
+  background: #f4f5f7;
+  font-size: 14.5px;
+  font-weight: 600;
+  color: #555;
+  margin-top: 14px;
+}
+
+/* 4. 플레이리스트 내 검색 화면 */
+.pld-search-view {
+  padding: 8px 18px 80px;
+  background: #fff;
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.pld-search-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.pld-search-input-wrap {
+  flex: 1;
+  height: 40px;
+  background: #f4f5f7;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  gap: 8px;
+}
+
+.pld-search-input-wrap input {
+  flex: 1;
+  border: 0;
+  background: transparent;
+  font-size: 14px;
+  outline: none;
+  color: #111;
+}
+
+.pld-search-clear {
+  color: #888;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.keyboard-placeholder {
+  margin-top: auto;
+  height: 210px;
+  background: #e2e4e9;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  color: #4b5563;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  user-select: none;
+}
+
+/* 5. 플레이리스트 편집 화면 */
+.pld-edit-view {
+  padding: 8px 16px 90px;
+  background: #fff;
+  min-height: 100%;
+  position: relative;
+}
+
+.pld-edit-top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 44px;
+  margin-bottom: 12px;
+}
+
+.pld-edit-top-bar h2 {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+  color: #111;
+}
+
+.pld-edit-close {
+  font-size: 20px;
+  color: #333;
+  padding: 4px;
+}
+
+.pld-edit-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 56px;
+  padding: 0 4px;
+  border-bottom: 0.5px solid #f5f5f5;
+  cursor: pointer;
+}
+
+.pld-checkbox {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1.5px solid #cbd5e1;
+  display: grid;
+  place-items: center;
+  flex: none;
+  transition: all 0.15s;
+}
+
+.pld-checkbox.is-checked {
+  background: #64748b;
+  border-color: #64748b;
+}
+
+.pld-checkbox.is-checked::after {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #fff;
+}
+
+.pld-drag-handle {
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  color: #94a3b8;
+  font-size: 20px;
+  cursor: grab;
+  flex: none;
+  margin-left: auto;
+}
+
+/* 하단 파란색 액션 툴바 */
+.pld-edit-toolbar-wrap {
+  flex: none;
+  background: #0096fd;
+  position: relative;
+  z-index: 25;
+}
+
+.pld-count-badge-floating {
+  position: absolute;
+  top: -14px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #0096fd;
+  color: #fff;
+  font-size: 12.5px;
+  font-weight: 700;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 2px 6px rgba(0, 150, 253, 0.4);
+  border: 2px solid #fff;
+}
+
+.pld-edit-toolbar {
+  height: 58px;
+  background: #0096fd;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: 0 12px;
+}
+
+.pld-tool-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 500;
+  opacity: 0.95;
+  transition: opacity 0.15s;
+}
+
+.pld-tool-btn:hover {
+  opacity: 1;
+}
+
+.pld-tool-btn .icon {
+  font-size: 16px;
+  line-height: 1;
+}
+
+.pld-edit-home-indicator {
+  height: 22px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #0096fd;
+  padding-bottom: 6px;
+}
+
+.pld-edit-home-indicator span {
+  width: 134px;
+  height: 5px;
+  border-radius: 100px;
+  background: rgba(255, 255, 255, 0.7);
+}
+
+/* --- 재생목록 화면 (Figma 190:1353, 202:164) --- */
+.queue-container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: #ffffff;
+  position: relative;
+  overflow: hidden;
+}
+
+.queue-header {
+  height: 100px;
+  background: #ffffff;
+  box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  flex: none;
+}
+
+.queue-header-top {
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  position: relative;
+}
+
+.queue-btn-x,
+.queue-btn-search {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.queue-header-title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: #000000;
+  text-align: center;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.queue-subtabs {
+  height: 48px;
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  gap: 20px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  position: relative;
+}
+
+.queue-subtabs::-webkit-scrollbar {
+  display: none;
+}
+
+.queue-subtab {
+  font-size: 15px;
+  font-weight: 500;
+  color: #8c8c8c;
+  white-space: nowrap;
+  background: none;
+  border: 0;
+  padding: 10px 0;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  position: relative;
+}
+
+.queue-subtab.is-active {
+  font-weight: 700;
+  color: #000000;
+}
+
+.queue-subtab.is-active::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: #0096fd;
+  border-radius: 2px;
+}
+
+.queue-5g-badge {
+  font-size: 9px;
+  font-weight: 700;
+  color: #0096fd;
+  border: 1px solid #0096fd;
+  border-radius: 3px;
+  padding: 1px 3px;
+  line-height: 1;
+}
+
+.queue-search-input-wrap {
+  padding: 8px 20px;
+  background: #f7f7f7;
+  display: flex;
+  align-items: center;
+  position: relative;
+  flex: none;
+}
+
+.queue-search-input-wrap input {
+  width: 100%;
+  height: 38px;
+  padding: 0 36px 0 34px;
+  background: #ffffff;
+  border: 1px solid #e5e5e5;
+  border-radius: 8px;
+  font-size: 14px;
+  outline: none;
+  font-family: inherit;
+}
+
+.queue-search-input-wrap .search-icon {
+  position: absolute;
+  left: 30px;
+  font-size: 13px;
+  color: #8c8c8c;
+}
+
+.queue-ctrl-row {
+  height: 44px;
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #ffffff;
+  flex: none;
+  border-bottom: 1px solid #f5f5f5;
+}
+
+.queue-ctrl-left {
+  display: flex;
+  align-items: center;
+}
+
+.queue-select-all-btn {
+  display: flex;
+  align-items: center;
+  font-size: 13px;
+  font-weight: 500;
+  color: #333333;
+  cursor: pointer;
+}
+
+.queue-total-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #000000;
+}
+
+.queue-total-count {
+  font-size: 13px;
+  font-weight: 700;
+  color: #0096fd;
+  margin-left: 4px;
+}
+
+.queue-ctrl-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.queue-tool-btn {
+  font-size: 13px;
+  font-weight: 500;
+  color: #404040;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 0;
+}
+
+.queue-song-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 4px 0 16px;
+  scrollbar-width: none;
+}
+
+.queue-song-list::-webkit-scrollbar {
+  display: none;
+}
+
+.queue-song-item {
+  height: 64px;
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.queue-song-item:active {
+  background: #f7f7f7;
+}
+
+.queue-song-item.is-playing {
+  background: #f0f7ff;
+}
+
+.queue-song-thumb {
+  width: 48px;
+  height: 48px;
+  border-radius: 4px;
+  flex: none;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.queue-song-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.queue-play-badge {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 150, 253, 0.7);
+  color: #ffffff;
+  display: grid;
+  place-items: center;
+  font-size: 14px;
+}
+
+.queue-song-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.queue-song-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: #000000;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.queue-song-title.is-playing-title {
+  color: #0096fd;
+  font-weight: 700;
+}
+
+.queue-song-artist {
+  font-size: 12px;
+  color: #8c8c8c;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.queue-song-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: none;
+}
+
+.queue-song-time {
+  font-size: 12px;
+  color: #8c8c8c;
+}
+
+.queue-song-more {
+  background: none;
+  border: 0;
+  color: #595959;
+  font-size: 16px;
+  cursor: pointer;
+  padding: 4px;
+}
+
+.queue-player {
+  height: 96px;
+  background: #f7f7f7;
+  border-top: 1px solid #e6e6e6;
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding-top: 10px;
+}
+
+.queue-player-inner {
+  height: 44px;
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.queue-zap-btn {
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  padding: 0;
+}
+
+.queue-player-ctrls {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.queue-ctrl-btn {
+  font-size: 18px;
+  color: #141414;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.queue-ctrl-play {
+  font-size: 22px;
+  color: #141414;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.queue-player-thumb {
+  width: 36px;
+  height: 36px;
+  border-radius: 3px;
+  overflow: hidden;
+  flex: none;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+}
+
+.queue-player-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
