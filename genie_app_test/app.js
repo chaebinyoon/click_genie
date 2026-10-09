@@ -831,7 +831,6 @@ function queueScreen() {
 
   return `
       <div class="queue-container" >
-      <div class="status"><img class="notch" src="assets/notch.svg" width="172" height="32" alt="" /><div class="time">9:41</div><div class="status-right"><img src="assets/signal.svg" width="18" height="12" alt="" /><img src="assets/wifi.svg" width="17" height="11.8339" alt="" /><img src="assets/battery.svg" width="27.4012" height="13" alt="" /></div></div>
       <div class="queue-header">
         <div class="queue-header-top">
           <button class="queue-btn-x" data-action="close-queue" aria-label="닫기"><img src="assets/queue_x.png" width="24" height="24" alt="닫기" /></button>
@@ -1040,7 +1039,6 @@ function render() {
     else body = tabScreen();
 
     app.innerHTML = `
-      <div class="status" ><img class="notch" src="assets/notch.svg" width="172" height="32" alt="" /><div class="time">9:41</div><div class="status-right"><img src="assets/signal.svg" width="18" height="12" alt="" /><img src="assets/wifi.svg" width="17" height="11.8339" alt="" /><img src="assets/battery.svg" width="27.4012" height="13" alt="" /></div></div>
         ${showGlobalHeader ? `<header class="header"><button class="logo" data-action="logo" aria-label="지니 홈"><img src="assets/image_1.png" alt="genie" /></button><div class="header-right"><button class="avatar" data-action="profile"><img src="assets/frame_14.png" width="32" height="32" alt="프로필" /></button><button class="pass" data-action="pass">이용권</button></div></header>` : ""}
       ${showChips ? `<nav class="chips"><div class="chip-row">${state.chips.map((c) => `<button class="chip${c === state.chip ? " is-on" : ""}" data-action="chip" data-chip="${c}">${c}</button>`).join("")}</div></nav>` : ""}
     <main class="main">${body}</main>

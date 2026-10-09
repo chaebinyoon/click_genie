@@ -102,8 +102,8 @@ button {
 }
 
 .logo {
-  width: 78px;
-  height: 32px;
+  width: 110px;
+  height: 44px;
   position: relative;
   overflow: hidden;
   border: 0;
@@ -113,8 +113,8 @@ button {
 }
 
 .logo img {
-  width: 78px;
-  height: 32px;
+  width: 110px;
+  height: 36px;
   object-fit: contain;
   position: static;
   display: block;
