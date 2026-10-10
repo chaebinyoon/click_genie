@@ -33,7 +33,7 @@ const tabCopy = {
 // --- 2. 앱 상태 관리 ---
 const state = {
   tab: "home",
-  chips: ["홈", "Dolby", "고음질 전용관", "DJ", "매거진"],
+  chips: ["홈", "Dolby", "고음질 전용관", "오디오", "DJ", "매거진"],
   chip: "홈",
   screen: "home",
   screenTitle: "",
@@ -1630,7 +1630,15 @@ function getSelectedTracksToSave() {
     const albumTracks = (state.currentAlbumTracks || []).filter(t => state.selectedSearchIds.includes(t.id.toString()));
     return [...searchTracks, ...albumTracks];
   } else if (state.selectedQueueIds && state.selectedQueueIds.length > 0) {
-    return state.queueTracks.filter((t, i) => state.selectedQueueIds.includes((t.id || (i + 1)).toString()));
+    let listTracks = state.queueTracks;
+    if (state.queueTab === "external") listTracks = state.externalTracks || [];
+    else if (state.queueTab === "fast") listTracks = tracks.slice(0, 6);
+    else if (state.queueTab === "hires") listTracks = tracks.slice(2, 7);
+    else if (state.queueTab === "my" && state.queueMyPlaylistId) {
+      const pl = myPlaylists.find(p => p.id.toString() === state.queueMyPlaylistId);
+      listTracks = pl ? pl.tracks : [];
+    }
+    return listTracks.filter((t, i) => state.selectedQueueIds.includes((t.id || (i + 1)).toString()));
   } else if (state.selectedSongIds && state.selectedSongIds.length > 0) {
     const pl = getCurrentPlaylist();
     if (pl) return pl.tracks.filter(t => state.selectedSongIds.includes(t.id.toString()));
@@ -2024,6 +2032,12 @@ app.addEventListener("click", (event) => {
   if (action === "close-sheet" && event.target !== target && !target.classList.contains("close")) return;
 
   if (action === "chip") {
+    if (target.dataset.chip === "오디오") {
+      state.showQueue = false;
+      state.showAudio = true;
+      fetchAudioEpisodes();
+      return render();
+    }
     state.chip = target.dataset.chip;
     state.screen = "home";
   } else if (action === "tab") {
@@ -2297,7 +2311,11 @@ app.addEventListener("click", (event) => {
     return render();
   } else if (action === "queue-delete") {
     if (state.selectedQueueIds.length > 0) {
-      state.queueTracks = state.queueTracks.filter((t, i) => !state.selectedQueueIds.includes((t.id || (i + 1)).toString()));
+      if (state.queueTab === "external") {
+        state.externalTracks = state.externalTracks.filter((t, i) => !state.selectedQueueIds.includes((t.id || (i + 1)).toString()));
+      } else {
+        state.queueTracks = state.queueTracks.filter((t, i) => !state.selectedQueueIds.includes((t.id || (i + 1)).toString()));
+      }
       state.selectedQueueIds = [];
     }
     return render();
@@ -2859,6 +2877,13 @@ app.addEventListener("click", (event) => {
       else if (state.queueTab === "fast") listTracks = tracks.slice(0, 6);
       else if (state.queueTab === "external") listTracks = state.externalTracks || [];
       else if (state.queueTab === "hires") listTracks = tracks.slice(2, 7);
+    } else {
+      if (state.nowPlaying) {
+        const extIdx = (state.externalTracks || []).findIndex(t => t.title === state.nowPlaying.title && t.artist === state.nowPlaying.artist);
+        if (extIdx > -1) {
+          listTracks = state.externalTracks;
+        }
+      }
     }
 
     if (listTracks.length === 0) return;
@@ -3049,11 +3074,12 @@ function handleDrop(sourceId, targetId, item) {
         }
       }
     } else if (item.classList.contains("queue-song-item")) {
-      const fromIdx = state.queueTracks.findIndex(t => (t.id || t.title).toString() === sourceId);
-      const toIdx = state.queueTracks.findIndex(t => (t.id || t.title).toString() === targetId);
+      const listTracks = state.queueTab === "external" ? state.externalTracks : state.queueTracks;
+      const fromIdx = listTracks.findIndex(t => (t.id || t.title).toString() === sourceId);
+      const toIdx = listTracks.findIndex(t => (t.id || t.title).toString() === targetId);
       if (fromIdx > -1 && toIdx > -1) {
-        const track = state.queueTracks.splice(fromIdx, 1)[0];
-        state.queueTracks.splice(toIdx, 0, track);
+        const track = listTracks.splice(fromIdx, 1)[0];
+        listTracks.splice(toIdx, 0, track);
         render();
       }
     }
