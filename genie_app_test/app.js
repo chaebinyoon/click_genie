@@ -77,6 +77,7 @@ const state = {
   // 내음악 & 플레이리스트 상태
   libraryView: "main",
   currentPlaylistId: "pl1",
+  queueMyPlaylistId: null,
   // [요구사항 2] 플레이리스트 접속 시 기본적으로 최근 추가순 정렬이 되도록 설정
   sortOrder: "recent",
   sortOrderLabel: "최근 추가순",
@@ -857,8 +858,14 @@ function playlistEditScreen() {
 // 6. 재생목록 화면
 function queueScreen() {
   let listTracks = state.queueTracks;
-  if (state.queueTab === "my") listTracks = tracks;
-  else if (state.queueTab === "fast") listTracks = tracks.slice(0, 6);
+  if (state.queueTab === "my") {
+    if (state.queueMyPlaylistId) {
+      const pl = myPlaylists.find(p => p.id.toString() === state.queueMyPlaylistId);
+      listTracks = pl ? pl.tracks : [];
+    } else {
+      listTracks = [];
+    }
+  } else if (state.queueTab === "fast") listTracks = tracks.slice(0, 6);
   else if (state.queueTab === "external") listTracks = state.externalTracks || [];
   else if (state.queueTab === "hires") listTracks = tracks.slice(2, 7);
 
@@ -919,9 +926,9 @@ function queueScreen() {
         <div class="queue-subtabs">
           <button class="queue-subtab${state.queueTab === "queue" ? " is-active" : ""}" data-action="queue-tab" data-tab="queue">재생목록</button>
           <button class="queue-subtab${state.queueTab === "my" ? " is-active" : ""}" data-action="queue-tab" data-tab="my">MY</button>
-          <button class="queue-subtab${state.queueTab === "fast" ? " is - active" : ""}" data-action="queue-tab" data-tab="fast" > 빠른선곡</button>
-      <button class="queue-subtab${state.queueTab === " external" ? " is - active" : ""}" data-action="queue-tab" data-tab="external" > 외부목록</button>
-        <button class="queue-subtab${state.queueTab === " hires" ? " is - active" : ""}" data-action="queue-tab" data-tab="hires" > 고음질전용관 <span class="queue-5g-badge" > 5G</span></button>
+          <button class="queue-subtab${state.queueTab === "fast" ? " is-active" : ""}" data-action="queue-tab" data-tab="fast">빠른선곡</button>
+          <button class="queue-subtab${state.queueTab === "external" ? " is-active" : ""}" data-action="queue-tab" data-tab="external">외부목록</button>
+          <button class="queue-subtab${state.queueTab === "hires" ? " is-active" : ""}" data-action="queue-tab" data-tab="hires">고음질전용관 <span class="queue-5g-badge">5G</span></button>
         </div>
       </div>
       ${state.queueShowSearch ? `
@@ -932,12 +939,17 @@ function queueScreen() {
         </div>
       ` : ""
     }
+      ${(state.queueTab === "my" && !state.queueMyPlaylistId) ? "" : `
       <div class="queue-ctrl-row">
         <div class="queue-ctrl-left">
           ${state.queueEdit ? `
             <button class="queue-select-all-btn" data-action="queue-toggle-select-all">
               <div class="pld-checkbox${isAllSelected ? " is-checked" : ""}" style="margin-right: 6px;"></div>
               <span>전체선택 ${selectedCount > 0 ? `(${selectedCount})` : ""}</span>
+            </button>
+          ` : (state.queueTab === "my" && state.queueMyPlaylistId) ? `
+            <button class="queue-my-pl-select-btn" data-action="queue-my-open-sheet" style="background:none; border:none; display:flex; align-items:center; font-size:15px; font-weight:700; color:#141414; padding:0; cursor:pointer;">
+              ${myPlaylists.find(p => p.id.toString() === state.queueMyPlaylistId)?.title} <span style="color:#0096fd; margin-left:4px;">${listTracks.length}</span> <img src="assets/queue_chevron_down.svg" style="margin-left:4px;" width="14" height="11" alt="" />
             </button>
           ` : `<span class="queue-total-label">전체</span><span class="queue-total-count">${listTracks.length}</span>`}
         </div>
@@ -949,15 +961,19 @@ function queueScreen() {
           ` : ""}
         </div>
       </div>
+      `}
 
       <div class="queue-song-list">
-        ${state.queueTab === "external" ? `
+        ${state.queueTab === "my" && !state.queueMyPlaylistId ? `
+          <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; padding-top:100px;">
+            <div style="font-size:16px; color:#555; font-weight:600; margin-bottom:16px;">나의 플레이리스트를 선택하세요!</div>
+            <button data-action="queue-my-open-sheet" style="padding:10px 16px; background:#f4f4f4; color:#555; border:none; border-radius:4px; font-size:14px; font-weight:600; cursor:pointer;">플레이리스트 보기</button>
+          </div>
+        ` : (state.queueTab === "external" ? `
           <div style="padding: 16px; text-align: center; border-bottom: 1px solid #f4f4f4; margin-bottom: 8px;">
             <button data-action="go-audio-tab" style="padding: 12px 24px; background: #0096fd; color: #fff; border: none; border-radius: 24px; font-weight: bold; font-size: 15px; cursor: pointer; box-shadow: 0 2px 8px rgba(0,150,253,0.3);">오디오 바로가기</button>
           </div>
-        ` : ""}
-        ${queueItems}
-        ${observerEl}
+        ` : "") + queueItems + observerEl}
       </div>
 
       ${state.queueEdit && state.sheet !== "save-to-playlist" ? `
@@ -1070,6 +1086,32 @@ function tabScreen() {
 function sheet() {
   if (state.sheet === "pass") return `<div class="sheet-back" data-action="close-sheet" > <div class="sheet" data-stop><h3>이용권</h3><p>광고 없이 고음질로 들을 수 있습니다.</p><button class="close" data-action="close-sheet">닫기</button></div></div> `;
   if (state.sheet === "queue") return `<div class="sheet-back" data-action="close-sheet" > <div class="sheet" data-stop><h3>재생목록</h3>${tracks.map((t, i) => `<button class="queue-item${state.index === i ? " is-on" : ""}" data-action="play" data-index="${i}"><span class="swatch" style="background:${t.color}"></span><strong>${t.title}</strong></button>`).join("")}</div></div> `;
+  if (state.sheet === "queue-my-playlist-select") {
+    return `
+      <div class="sheet-back" data-action="close-sheet">
+        <div class="sheet" style="padding:0; background:#fff; border-radius:16px 16px 0 0;" data-stop>
+          <div style="padding:16px; text-align:center;">
+            <div style="width:40px; height:4px; background:#ddd; border-radius:2px; margin: 0 auto 12px;"></div>
+          </div>
+          <div style="max-height: 400px; overflow-y:auto; padding-bottom: 20px;">
+            ${myPlaylists.map(pl => `
+              <div style="display:flex; align-items:center; padding:12px 24px;">
+                <div data-action="queue-my-select-playlist" data-id="${pl.id}" style="display:flex; align-items:center; flex:1; cursor:pointer;">
+                  <div style="width:48px; height:48px; background:#8CC7BF; border-radius:4px; margin-right:16px;"></div>
+                  <div style="flex:1;">
+                    <div style="font-size:16px; font-weight:700; color:#141414; margin-bottom:4px;">${pl.title}</div>
+                    <div style="font-size:13px; color:#aaa;">${pl.tracks.length}곡</div>
+                  </div>
+                </div>
+                <div data-action="queue-my-play-playlist" data-id="${pl.id}" style="font-size:24px; color:#141414; padding: 10px; cursor:pointer;">▶</div>
+              </div>
+            `).join("")}
+          </div>
+          <button data-action="close-sheet" style="width:100%; padding:16px; background:#fff; border:none; border-top: 1px solid #f0f0f0; font-size:15px; color:#888; font-weight:600; cursor:pointer;">취소</button>
+        </div>
+      </div>
+    `;
+  }
   return "";
 }
 
@@ -1103,11 +1145,11 @@ function miniPlayer() {
 function fullPlayerScreen() {
   const track = currentTrack();
   if (!track) return "";
-  
+
   const cover = track.cover || track.artworkUrl600 || track.artworkUrl100 || "";
   const title = track.title || "";
   const artist = track.artist || "";
-  
+
   return `
     <div id="full-player-container" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1000; background: #333; color: #fff; display: flex; flex-direction: column; transform: translateY(0); transition: transform 0.3s ease;">
       <div style="display: flex; align-items: center; justify-content: space-between; padding: 16px 20px;">
@@ -1273,15 +1315,15 @@ function setupFullPlayerProgressDrag() {
     const progressEl = document.getElementById("full-player-progress");
     const timeEl = document.getElementById("full-player-current-time");
     if (!w || !progressEl) return 0;
-    
+
     const rect = w.getBoundingClientRect();
     const x = clientX - rect.left;
     const ratio = Math.max(0, Math.min(1, x / rect.width));
     const duration = audioPlayer.duration || 30;
-    
+
     progressEl.style.width = `${ratio * 100}%`;
     if (timeEl) timeEl.innerText = formatTimeStr(duration * ratio);
-    
+
     return duration * ratio;
   }
 
@@ -1290,7 +1332,7 @@ function setupFullPlayerProgressDrag() {
     window.isProgressDragging = true;
     updateProgress(e.clientX);
   });
-  
+
   wrapper.addEventListener("touchstart", (e) => {
     window.isProgressDragging = true;
     updateProgress(e.touches[0].clientX);
@@ -1331,22 +1373,22 @@ function setupFullPlayerProgressDrag() {
 function setupFullPlayerSwipe() {
   const container = document.getElementById("full-player-container");
   if (!container) return;
-  
+
   let startY = 0;
   let currentY = 0;
-  
+
   container.addEventListener("touchstart", (e) => {
     startY = e.touches[0].clientY;
     container.style.transition = "none";
   }, { passive: true });
-  
+
   container.addEventListener("touchmove", (e) => {
     currentY = e.touches[0].clientY - startY;
     if (currentY > 0) {
       container.style.transform = `translateY(${currentY}px)`;
     }
   }, { passive: true });
-  
+
   container.addEventListener("touchend", () => {
     container.style.transition = "transform 0.3s ease";
     if (currentY > 150) {
@@ -1521,7 +1563,7 @@ function audioScreen() {
       
       <div style="flex: 1; overflow-y: auto;">
         ${state.isAudioSearching ? `<div style="padding: 40px; text-align: center; color: #888; font-weight: 500;">검색 중...</div>` :
-          (state.audioSearchQuery && state.audioSearchResults.length > 0) ? `
+      (state.audioSearchQuery && state.audioSearchResults.length > 0) ? `
           <div style="padding: 24px 20px 16px;">
             <h2 style="font-size: 18px; font-weight: 800; margin: 0;">검색 결과</h2>
           </div>
@@ -1559,7 +1601,7 @@ function audioScreen() {
 function audioDetailScreen() {
   const ep = state.audioDetail;
   const dateStr = ep.releaseDate ? ep.releaseDate.substring(0, 10).replace(/-/g, ".") : "";
-  
+
   let epsHtml = "";
   if (state.isAudioDetailLoading) {
     epsHtml = `<div style="text-align: center; padding: 20px; color: #888;">에피소드 불러오는 중...</div>`;
@@ -1618,7 +1660,7 @@ function showToast(message) {
   }, 2500);
 }
 
-window.handleAudioDetailScroll = function(el) {
+window.handleAudioDetailScroll = function (el) {
   if (el.scrollHeight - el.scrollTop <= el.clientHeight + 150) {
     if (state.audioDetailEpisodes && state.audioDetailVisibleCount < state.audioDetailEpisodes.length) {
       state.audioDetailVisibleCount += 20;
@@ -1649,21 +1691,21 @@ function playAudioEpisode(ep, podcast) {
     time: formatMs(ep.trackTimeMillis),
     addedAt: Date.now()
   };
-  
+
   // 외부목록 중복 제거 (previewUrl 기준)
   state.externalTracks = state.externalTracks.filter(t => t.previewUrl !== previewUrl);
-  
+
   state.externalTracks.push(newTrack);
   state.nowPlaying = newTrack;
   state.paused = false;
-  
+
   if (previewUrl) {
     if (audioPlayer.src !== previewUrl) audioPlayer.src = previewUrl;
     audioPlayer.play();
   } else {
     audioPlayer.pause();
   }
-  
+
   showToast("오디오가 외부목록에 추가되었습니다.");
   render();
 }
@@ -1807,6 +1849,51 @@ app.addEventListener("click", (event) => {
     state.showQueue = false;
     state.queueEdit = false;
     state.selectedQueueIds = [];
+    state.queueMyPlaylistId = null;
+    return render();
+  } else if (action === "queue-my-open-sheet") {
+    state.sheet = "queue-my-playlist-select";
+    return render();
+  } else if (action === "queue-my-select-playlist") {
+    state.queueMyPlaylistId = target.dataset.id;
+    const pl = myPlaylists.find(p => p.id.toString() === state.queueMyPlaylistId);
+    if (pl && pl.tracks) {
+      pl.tracks.forEach(track => {
+        const exists = state.queueTracks.find(t => t.title === track.title && t.artist === track.artist);
+        if (!exists) {
+          state.queueTracks.push({ ...track, id: Date.now() + Math.random() });
+        }
+      });
+    }
+    state.sheet = null;
+    return render();
+  } else if (action === "queue-my-play-playlist") {
+    state.queueMyPlaylistId = target.dataset.id;
+    const pl = myPlaylists.find(p => p.id.toString() === state.queueMyPlaylistId);
+    if (pl && pl.tracks.length > 0) {
+      pl.tracks.forEach(track => {
+        const exists = state.queueTracks.find(t => t.title === track.title && t.artist === track.artist);
+        if (!exists) {
+          state.queueTracks.push({ ...track, id: Date.now() + Math.random() });
+        }
+      });
+      const song = pl.tracks[0];
+      state.nowPlaying = {
+        title: song.title,
+        artist: song.artist,
+        color: song.color,
+        cover: song.cover,
+        previewUrl: song.previewUrl
+      };
+      state.paused = false;
+      if (song.previewUrl) {
+        if (audioPlayer.src !== song.previewUrl) audioPlayer.src = song.previewUrl;
+        audioPlayer.play();
+      } else {
+        audioPlayer.pause();
+      }
+    }
+    state.sheet = null;
     return render();
   } else if (action === "queue-tab") {
     state.queueTab = target.dataset.tab;
@@ -1827,12 +1914,12 @@ app.addEventListener("click", (event) => {
     const type = target.closest("[data-type]").getAttribute("data-type");
     let list = type === "jazz" ? state.audioEpisodesJazz : type === "classic" ? state.audioEpisodesClassic : state.audioSearchResults;
     state.audioDetail = list.find(e => (e.trackId || e.collectionId).toString() === id);
-    
+
     state.audioDetailEpisodes = [];
     state.audioDetailVisibleCount = 20;
     state.isAudioDetailLoading = true;
     render();
-    
+
     if (state.audioDetail) {
       fetch(`https://itunes.apple.com/lookup?id=${state.audioDetail.collectionId || state.audioDetail.trackId}&entity=podcastEpisode&limit=200&country=kr`)
         .then(r => r.json())
@@ -1868,7 +1955,7 @@ app.addEventListener("click", (event) => {
         };
         state.externalTracks = state.externalTracks.filter(t => t.previewUrl !== previewUrl);
         state.externalTracks.push(newTrack);
-        
+
         if (idx === 0) {
           state.nowPlaying = newTrack;
           state.paused = false;
@@ -1916,7 +2003,10 @@ app.addEventListener("click", (event) => {
   } else if (action === "queue-play-track") {
     const idx = parseInt(target.dataset.index, 10);
     let listTracks = state.queueTracks;
-    if (state.queueTab === "my") listTracks = tracks;
+    if (state.queueTab === "my") {
+      const pl = myPlaylists.find(p => p.id.toString() === state.queueMyPlaylistId);
+      listTracks = pl ? pl.tracks : [];
+    }
     else if (state.queueTab === "fast") listTracks = tracks.slice(0, 6);
     else if (state.queueTab === "external") listTracks = state.externalTracks || [];
     else if (state.queueTab === "hires") listTracks = tracks.slice(2, 7);
@@ -1947,7 +2037,10 @@ app.addEventListener("click", (event) => {
     return render();
   } else if (action === "queue-toggle-select-all") {
     let listTracks = state.queueTracks;
-    if (state.queueTab === "my") listTracks = tracks;
+    if (state.queueTab === "my") {
+      const pl = myPlaylists.find(p => p.id.toString() === state.queueMyPlaylistId);
+      listTracks = pl ? pl.tracks : [];
+    }
     else if (state.queueTab === "fast") listTracks = tracks.slice(0, 6);
     else if (state.queueTab === "external") listTracks = state.externalTracks || [];
     else if (state.queueTab === "hires") listTracks = tracks.slice(2, 7);
@@ -2516,7 +2609,10 @@ app.addEventListener("click", (event) => {
   } else if (action === "prev" || action === "next") {
     let listTracks = state.queueTracks;
     if (state.showQueue) {
-      if (state.queueTab === "my") listTracks = tracks;
+      if (state.queueTab === "my") {
+        const pl = myPlaylists.find(p => p.id.toString() === state.queueMyPlaylistId);
+        listTracks = pl ? pl.tracks : [];
+      }
       else if (state.queueTab === "fast") listTracks = tracks.slice(0, 6);
       else if (state.queueTab === "external") listTracks = state.externalTracks || [];
       else if (state.queueTab === "hires") listTracks = tracks.slice(2, 7);
