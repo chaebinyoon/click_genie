@@ -1,41 +1,29 @@
 const fs = require('fs');
+let appJs = fs.readFileSync('app.js', 'utf8');
+appJs = appJs.replace(/document\.querySelector/g, '(()=>({style:{}}))');
+appJs = appJs.replace(/document\.getElementById/g, '(()=>({style:{}}))');
+appJs = appJs.replace(/document\.body/g, '({})');
+appJs = appJs.replace(/window\./g, '({}).');
+appJs = appJs.replace(/localStorage/g, '({getItem:()=>null,setItem:()=>{}})');
+appJs = appJs.replace(/alert/g, 'console.log');
 
-global.window = {
-  location: { search: "" },
-  addEventListener: () => {}
+const mockDOM = `
+let app = { innerHTML: '' };
+let state = {
+  tab: 'home',
+  screen: 'home',
+  chips: ['전체', '음악', '방송'],
+  chip: '전체',
+  toastMessage: '',
+  showFullPlayer: false,
+  isSearchEditing: false,
+  sheet: '',
+  queueTracks: [],
+  selectedSongIds: [],
+  selectedSearchIds: [],
+  nowPlaying: null
 };
-global.document = {
-  getElementById: (id) => {
-    if (id === "app") return global.app;
-    return { id, insertAdjacentHTML: () => {}, focus: () => {}, setSelectionRange: () => {} };
-  },
-  querySelector: () => ({ scrollTop: 0, scrollLeft: 0 }),
-  addEventListener: () => {}
-};
-global.Audio = class {
-  constructor() { this.paused = true; this.src = ""; }
-  play() {}
-  pause() {}
-  addEventListener() {}
-};
-global.IntersectionObserver = class {
-  constructor() {}
-  observe() {}
-  disconnect() {}
-};
-global.Intl = {
-  NumberFormat: class { format(n) { return n.toString(); } }
-};
-global.URLSearchParams = class {
-  constructor() {}
-  get() { return null; }
-};
-global.app = { innerHTML: "", addEventListener: () => {} };
-
-const code = fs.readFileSync('app.js', 'utf8');
-try {
-  eval(code);
-  fs.writeFileSync('output.html', global.app.innerHTML);
-} catch (e) {
-  console.error(e);
-}
+let tracks = [];
+let albums = [];
+`;
+fs.writeFileSync('output.html', mockDOM + appJs + '; render(); console.log(app.innerHTML);');

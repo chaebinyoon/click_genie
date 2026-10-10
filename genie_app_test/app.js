@@ -413,7 +413,7 @@ function trackButton(track, index) {
     <span class="rank"><b>${index + 1}</b>${renderDelta(track)}</span>
     <span class="meta"><strong>${track.title}</strong><em>${track.artist}</em></span>
     ${track.previewUrl
-      ? (isPlayingNow && !state.paused ? '<span style="margin-left:auto; font-size:16px; color:#141414; padding-right:10px;"><svg width=&quot;1em&quot; height=&quot;1em&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;currentColor&quot; xmlns=&quot;http://www.w3.org/2000/svg&quot;><path d=&quot;M6 19h4V5H6v14zm8-14v14h4V5h-4z&quot;/></svg></span>' : '<span style="margin-left:auto; font-size:16px; color:#141414; padding-right:10px;"><svg width=&quot;1em&quot; height=&quot;1em&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;currentColor&quot; xmlns=&quot;http://www.w3.org/2000/svg&quot;><path d=&quot;M8 5v14l11-7z&quot;/></svg></span>')
+      ? (isPlayingNow && !state.paused ? '<span style="margin-left:auto; font-size:16px; color:#141414; padding-right:10px;"><svg width=\'1em\' height=\'1em\' viewBox=\'0 0 24 24\' fill=\'currentColor\' xmlns=\'http://www.w3.org/2000/svg\'><path d=\'M6 19h4V5H6v14zm8-14v14h4V5h-4z\'/></svg></span>' : '<span style="margin-left:auto; font-size:16px; color:#141414; padding-right:10px;"><svg width=\'1em\' height=\'1em\' viewBox=\'0 0 24 24\' fill=\'currentColor\' xmlns=\'http://www.w3.org/2000/svg\'><path d=\'M8 5v14l11-7z\'/></svg></span>')
       : ""}
   </button>`;
 }
@@ -436,7 +436,7 @@ function searchTrackButton(track, index) {
         <div style="display: flex; align-items: center; margin-left: auto; flex-shrink: 0; padding-right: 10px;">
           <button data-action="play-search" data-index="${index}" style="background: none; border: none; padding: 10px; cursor: pointer;">
             ${track.previewUrl
-      ? (isPlayingNow && !state.paused ? '<span style="font-size:16px; color:#141414;"><svg width=&quot;1em&quot; height=&quot;1em&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;currentColor&quot; xmlns=&quot;http://www.w3.org/2000/svg&quot;><path d=&quot;M6 19h4V5H6v14zm8-14v14h4V5h-4z&quot;/></svg></span>' : '<span style="font-size:16px; color:#141414;"><svg width=&quot;1em&quot; height=&quot;1em&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;currentColor&quot; xmlns=&quot;http://www.w3.org/2000/svg&quot;><path d=&quot;M8 5v14l11-7z&quot;/></svg></span>')
+      ? (isPlayingNow && !state.paused ? '<span style="font-size:16px; color:#141414;"><svg width=\'1em\' height=\'1em\' viewBox=\'0 0 24 24\' fill=\'currentColor\' xmlns=\'http://www.w3.org/2000/svg\'><path d=\'M6 19h4V5H6v14zm8-14v14h4V5h-4z\'/></svg></span>' : '<span style="font-size:16px; color:#141414;"><svg width=\'1em\' height=\'1em\' viewBox=\'0 0 24 24\' fill=\'currentColor\' xmlns=\'http://www.w3.org/2000/svg\'><path d=\'M8 5v14l11-7z\'/></svg></span>')
       : ""}
           </button>
         </div>
@@ -473,7 +473,7 @@ function homeScreen() {
         <button data-action="chart"><h2>지니차트 &gt;</h2></button>
       </div>
       <div class="track-list">${visibleTracks().map(trackButton).join("")}</div>
-      ${state.expanded ? "" : `<button class="more" data-action="play-chart-all"><svg width=&quot;1em&quot; height=&quot;1em&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;currentColor&quot; xmlns=&quot;http://www.w3.org/2000/svg&quot;><path d=&quot;M8 5v14l11-7z&quot;/></svg> 전체재생</button>`}
+      ${state.expanded ? "" : `<button class="more" data-action="play-chart-all"><svg width=\'1em\' height=\'1em\' viewBox=\'0 0 24 24\' fill=\'currentColor\' xmlns=\'http://www.w3.org/2000/svg\'><path d=\'M8 5v14l11-7z\'/></svg> 전체재생</button>`}
     </section>
     <section class="label-block">
       <div class="section-head"><button class="plain-title" data-action="labels">레이블 PICK &gt;</button></div>
@@ -534,7 +534,7 @@ function searchScreen() {
       <div style="display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding-bottom: 4px;">
         ${state.recentSearches.map(keyword => `
           <div data-action="search-recent" data-keyword="${keyword}" style="border: 1px solid #e5e5e5; border-radius: 20px; padding: 6px 12px; font-size: 14px; color: #141414; display: flex; align-items: center; gap: 4px; white-space: nowrap; flex: none; cursor: pointer;">
-            ${keyword} <span data-action="delete-recent-search" data-keyword="${keyword}" style="color: #ccc; font-size: 12px; cursor: pointer; padding-left: 2px;"><svg width=&quot;1em&quot; height=&quot;1em&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;currentColor&quot; xmlns=&quot;http://www.w3.org/2000/svg&quot;><path d=&quot;M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z&quot;/></svg></span>
+            ${keyword} <span data-action="delete-recent-search" data-keyword="${keyword}" style="color: #ccc; font-size: 12px; cursor: pointer; padding-left: 2px;"><svg width=\'1em\' height=\'1em\' viewBox=\'0 0 24 24\' fill=\'currentColor\' xmlns=\'http://www.w3.org/2000/svg\'><path d=\'M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z\'/></svg></span>
           </div>
         `).join("")}
       </div>
@@ -621,7 +621,7 @@ function albumTrackButton(track, index) {
       ${track.coverUrl ? `<img class="cover" src="${track.coverUrl}" alt="" style="object-fit: cover;" />` : `<div class="cover" style="background: #e0e0e0;"></div>`}
       <span class="meta" style="margin-left: 12px;"><strong>${track.title}</strong><em>${track.artist}</em></span>
       ${track.previewUrl
-      ? (isPlayingNow && !state.paused ? '<span style="margin-left:auto; font-size:16px; color:#141414; padding-right:10px;"><svg width=&quot;1em&quot; height=&quot;1em&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;currentColor&quot; xmlns=&quot;http://www.w3.org/2000/svg&quot;><path d=&quot;M6 19h4V5H6v14zm8-14v14h4V5h-4z&quot;/></svg></span>' : '<span style="margin-left:auto; font-size:16px; color:#141414; padding-right:10px;"><svg width=&quot;1em&quot; height=&quot;1em&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;currentColor&quot; xmlns=&quot;http://www.w3.org/2000/svg&quot;><path d=&quot;M8 5v14l11-7z&quot;/></svg></span>')
+      ? (isPlayingNow && !state.paused ? '<span style="margin-left:auto; font-size:16px; color:#141414; padding-right:10px;"><svg width=\'1em\' height=\'1em\' viewBox=\'0 0 24 24\' fill=\'currentColor\' xmlns=\'http://www.w3.org/2000/svg\'><path d=\'M6 19h4V5H6v14zm8-14v14h4V5h-4z\'/></svg></span>' : '<span style="margin-left:auto; font-size:16px; color:#141414; padding-right:10px;"><svg width=\'1em\' height=\'1em\' viewBox=\'0 0 24 24\' fill=\'currentColor\' xmlns=\'http://www.w3.org/2000/svg\'><path d=\'M8 5v14l11-7z\'/></svg></span>')
       : ""
     }
     </button> `;
@@ -652,7 +652,7 @@ function searchAlbumScreen() {
                   </div>
                 </div>
                 <div class="pld-song-actions">
-                  <button class="lib-pl-play-btn" data-action="play-album-track" data-index="${i}"><svg width=&quot;1em&quot; height=&quot;1em&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;currentColor&quot; xmlns=&quot;http://www.w3.org/2000/svg&quot;><path d=&quot;M8 5v14l11-7z&quot;/></svg></button>
+                  <button class="lib-pl-play-btn" data-action="play-album-track" data-index="${i}"><svg width=\'1em\' height=\'1em\' viewBox=\'0 0 24 24\' fill=\'currentColor\' xmlns=\'http://www.w3.org/2000/svg\'><path d=\'M8 5v14l11-7z\'/></svg></button>
                 </div>
               </div> `;
           }).join("")}
@@ -668,7 +668,7 @@ function searchAlbumScreen() {
         <div class="pld-hero-thumb" style="${album.coverUrl ? `background-image:url(${album.coverUrl}); background-size:cover;` : `background-color:#e0e0e0;`}"></div>
         <div class="pld-hero-title">${album.title}</div>
         <div class="pld-hero-sub">${album.artist} • ${album.releaseYear} • 수록곡 ${state.currentAlbumTracks.length}곡</div>
-        <button class="pld-play-all-btn" data-action="play-album-all"><svg width=&quot;1em&quot; height=&quot;1em&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;currentColor&quot; xmlns=&quot;http://www.w3.org/2000/svg&quot;><path d=&quot;M8 5v14l11-7z&quot;/></svg> 전체듣기</button>
+        <button class="pld-play-all-btn" data-action="play-album-all"><svg width=\'1em\' height=\'1em\' viewBox=\'0 0 24 24\' fill=\'currentColor\' xmlns=\'http://www.w3.org/2000/svg\'><path d=\'M8 5v14l11-7z\'/></svg> 전체듣기</button>
       </div>
       <div class="pld-songs-sec">
         <div class="pld-songs-head">
@@ -676,7 +676,7 @@ function searchAlbumScreen() {
         </div>
         <div class="pld-ctrl-row">
           <div class="pld-ctrl-left">
-            <button class="pld-ctrl-btn" data-action="play-album-all"><svg width=&quot;1em&quot; height=&quot;1em&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;currentColor&quot; xmlns=&quot;http://www.w3.org/2000/svg&quot;><path d=&quot;M8 5v14l11-7z&quot;/></svg> 전체듣기</button>
+            <button class="pld-ctrl-btn" data-action="play-album-all"><svg width=\'1em\' height=\'1em\' viewBox=\'0 0 24 24\' fill=\'currentColor\' xmlns=\'http://www.w3.org/2000/svg\'><path d=\'M8 5v14l11-7z\'/></svg> 전체듣기</button>
           </div>
         </div>
         ${tracksHtml}
@@ -716,8 +716,8 @@ function libraryMainScreen() {
           <div class="lib-pl-sub">총 ${pl.tracks.length}곡</div>
         </div>
         <div class="lib-pl-actions">
-          <button class="lib-pl-play-btn" data-action="play-playlist" data-id="${pl.id}" title="재생"><svg width=&quot;1em&quot; height=&quot;1em&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;currentColor&quot; xmlns=&quot;http://www.w3.org/2000/svg&quot;><path d=&quot;M8 5v14l11-7z&quot;/></svg></button>
-          <button class="lib-pl-more-btn" data-action="pl-more" data-id="${pl.id}"><svg width=&quot;1em&quot; height=&quot;1em&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;currentColor&quot; xmlns=&quot;http://www.w3.org/2000/svg&quot;><path d=&quot;M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z&quot;/></svg></button>
+          <button class="lib-pl-play-btn" data-action="play-playlist" data-id="${pl.id}" title="재생"><svg width=\'1em\' height=\'1em\' viewBox=\'0 0 24 24\' fill=\'currentColor\' xmlns=\'http://www.w3.org/2000/svg\'><path d=\'M8 5v14l11-7z\'/></svg></button>
+          <button class="lib-pl-more-btn" data-action="pl-more" data-id="${pl.id}"><svg width=\'1em\' height=\'1em\' viewBox=\'0 0 24 24\' fill=\'currentColor\' xmlns=\'http://www.w3.org/2000/svg\'><path d=\'M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z\'/></svg></button>
         </div>
       </div> `).join("");
 
@@ -734,7 +734,7 @@ function libraryMainScreen() {
         <button class="lib-quick-card" data-action="quick-menu" data-type="like"><span class="icon" style="font-size:16px; font-weight: 300;">♡</span><span>좋아요</span></button>
         <button class="lib-quick-card" data-action="quick-menu" data-type="album"><span class="icon" style="font-size:16px; font-weight: 300;">⊟</span><span>보관함</span></button>
         <button class="lib-quick-card" data-action="quick-menu" data-type="recent"><span class="icon" style="font-size:16px; font-weight: 300;">🕒</span><span>최근 재생한</span></button>
-        <button class="lib-quick-card" data-action="quick-menu" data-type="most"><span class="icon" style="font-size:16px; font-weight: 300;"><svg width=&quot;1em&quot; height=&quot;1em&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;currentColor&quot; xmlns=&quot;http://www.w3.org/2000/svg&quot;><path d=&quot;M8 5v14l11-7z&quot;/></svg></span><span>많이 재생한</span></button>
+        <button class="lib-quick-card" data-action="quick-menu" data-type="most"><span class="icon" style="font-size:16px; font-weight: 300;"><svg width=\'1em\' height=\'1em\' viewBox=\'0 0 24 24\' fill=\'currentColor\' xmlns=\'http://www.w3.org/2000/svg\'><path d=\'M8 5v14l11-7z\'/></svg></span><span>많이 재생한</span></button>
         <button class="lib-quick-card" data-action="quick-menu" data-type="dj"><span class="icon" style="font-size:16px; font-weight: 300;">☺</span><span>구독 DJ</span></button>
       </div>
       <div class="lib-section-head">
@@ -778,7 +778,7 @@ function playlistDetailScreen() {
             <div class="pld-song-artist">${track.artist}</div>
           </div>
           <div class="pld-song-actions">
-            <button class="lib-pl-play-btn" data-action="play-custom" data-title="${encodeURIComponent(track.title)}" data-artist="${encodeURIComponent(track.artist)}" data-color="${track.color}" data-preview="${track.previewUrl || ''}" data-cover="${track.cover || ''}"><svg width=&quot;1em&quot; height=&quot;1em&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;currentColor&quot; xmlns=&quot;http://www.w3.org/2000/svg&quot;><path d=&quot;M8 5v14l11-7z&quot;/></svg></button>
+            <button class="lib-pl-play-btn" data-action="play-custom" data-title="${encodeURIComponent(track.title)}" data-artist="${encodeURIComponent(track.artist)}" data-color="${track.color}" data-preview="${track.previewUrl || ''}" data-cover="${track.cover || ''}"><svg width=\'1em\' height=\'1em\' viewBox=\'0 0 24 24\' fill=\'currentColor\' xmlns=\'http://www.w3.org/2000/svg\'><path d=\'M8 5v14l11-7z\'/></svg></button>
           </div>
         </div> `;
   }).join("");
@@ -789,13 +789,13 @@ function playlistDetailScreen() {
       <div class="pld-page" >
       <div class="pld-top-bar">
         <button class="pld-back-btn" data-action="lib-back">‹</button>
-        <button class="lib-pl-more-btn" data-action="pl-more" data-id="${pl.id}"><svg width=&quot;1em&quot; height=&quot;1em&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;currentColor&quot; xmlns=&quot;http://www.w3.org/2000/svg&quot;><path d=&quot;M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z&quot;/></svg></button>
+        <button class="lib-pl-more-btn" data-action="pl-more" data-id="${pl.id}"><svg width=\'1em\' height=\'1em\' viewBox=\'0 0 24 24\' fill=\'currentColor\' xmlns=\'http://www.w3.org/2000/svg\'><path d=\'M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z\'/></svg></button>
       </div>
       <div class="pld-hero">
         <div class="pld-hero-thumb" style="${pl.tracks.length > 0 && pl.tracks[0].cover ? `background-image:url(${pl.tracks[0].cover}); background-size:cover;` : `background-color:${pl.color}`}"></div>
         <div class="pld-hero-title">${pl.title}</div>
         <div class="pld-hero-sub">수록곡 ${pl.tracks.length}곡 • ${pl.time}</div>
-        <button class="pld-play-all-btn" data-action="play-playlist-all"><svg width=&quot;1em&quot; height=&quot;1em&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;currentColor&quot; xmlns=&quot;http://www.w3.org/2000/svg&quot;><path d=&quot;M8 5v14l11-7z&quot;/></svg> 전체듣기</button>
+        <button class="pld-play-all-btn" data-action="play-playlist-all"><svg width=\'1em\' height=\'1em\' viewBox=\'0 0 24 24\' fill=\'currentColor\' xmlns=\'http://www.w3.org/2000/svg\'><path d=\'M8 5v14l11-7z\'/></svg> 전체듣기</button>
       </div>
       <div class="pld-songs-sec">
         <div class="pld-songs-head">
@@ -805,14 +805,14 @@ function playlistDetailScreen() {
           </div>
         </div>
         <div class="pld-search-bar" style="display:flex; align-items:center;">
-          <span class="search-icon"><svg width=&quot;1em&quot; height=&quot;1em&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;currentColor&quot; xmlns=&quot;http://www.w3.org/2000/svg&quot;><path d=&quot;M15.5 14h-.79l-.28-.27A6.471 6.471 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z&quot;/></svg></span>
+          <span class="search-icon"><svg width=\'1em\' height=\'1em\' viewBox=\'0 0 24 24\' fill=\'currentColor\' xmlns=\'http://www.w3.org/2000/svg\'><path d=\'M15.5 14h-.79l-.28-.27A6.471 6.471 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z\'/></svg></span>
           <input type="text" id="pld-search-input" value="${state.playlistSearchQuery || ""}" placeholder="이 리스트에서 찾기" style="flex:1; border:none; background:none; outline:none; font-size:15px; margin-left:8px;" />
-          ${state.playlistSearchQuery ? '<button class="pld-search-clear" data-action="clear-pld-search"><svg width=&quot;1em&quot; height=&quot;1em&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;currentColor&quot; xmlns=&quot;http://www.w3.org/2000/svg&quot;><path d=&quot;M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z&quot;/></svg></button>' : ""}
+          ${state.playlistSearchQuery ? '<button class="pld-search-clear" data-action="clear-pld-search"><svg width=\'1em\' height=\'1em\' viewBox=\'0 0 24 24\' fill=\'currentColor\' xmlns=\'http://www.w3.org/2000/svg\'><path d=\'M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z\'/></svg></button>' : ""}
         </div>
         <div class="pld-ctrl-row">
           <div class="pld-ctrl-left">
             <button class="pld-ctrl-btn" data-action="open-edit-mode">✓ 전체선택</button>
-            <button class="pld-ctrl-btn" data-action="play-playlist-all"><svg width=&quot;1em&quot; height=&quot;1em&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;currentColor&quot; xmlns=&quot;http://www.w3.org/2000/svg&quot;><path d=&quot;M8 5v14l11-7z&quot;/></svg> 전체듣기</button>
+            <button class="pld-ctrl-btn" data-action="play-playlist-all"><svg width=\'1em\' height=\'1em\' viewBox=\'0 0 24 24\' fill=\'currentColor\' xmlns=\'http://www.w3.org/2000/svg\'><path d=\'M8 5v14l11-7z\'/></svg> 전체듣기</button>
           </div>
           <div class="pld-ctrl-right">
             <button class="pld-ctrl-btn" data-action="open-sort-sheet">${state.sortOrderLabel} ▾</button>
@@ -847,7 +847,7 @@ function sortBottomSheet() {
             ${options.map((opt) => `
             <div class="sort-opt-item${currentSortOrder === opt.id ? " is-selected" : ""}" data-action="select-sort-order" data-id="${opt.id}" data-label="${opt.label}">
               <span>${opt.label}</span>
-              ${currentSortOrder === opt.id ? '<span class="sort-opt-check"><svg width=&quot;1em&quot; height=&quot;1em&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;currentColor&quot; xmlns=&quot;http://www.w3.org/2000/svg&quot;><path d=&quot;M9 15h4v6h2v-6h4l-7-7-7 7zM5 3v2h14V3H5z&quot;/></svg></span>' : ""}
+              ${currentSortOrder === opt.id ? '<span class="sort-opt-check"><svg width=\'1em\' height=\'1em\' viewBox=\'0 0 24 24\' fill=\'currentColor\' xmlns=\'http://www.w3.org/2000/svg\'><path d=\'M9 15h4v6h2v-6h4l-7-7-7 7zM5 3v2h14V3H5z\'/></svg></span>' : ""}
             </div>`).join("")}
           </div>
           <button class="sort-cancel-btn" data-action="close-sort-sheet">취소</button>
@@ -877,7 +877,7 @@ function playlistSearchScreen() {
           <div class="pld-song-artist">${track.artist}</div>
         </div>
         <div class="pld-song-actions">
-          <button class="lib-pl-play-btn" data-action="play-custom" data-title="${encodeURIComponent(track.title)}" data-artist="${encodeURIComponent(track.artist)}" data-color="${track.color}" data-preview="${track.previewUrl || ''}" data-cover="${track.cover || ''}"><svg width=&quot;1em&quot; height=&quot;1em&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;currentColor&quot; xmlns=&quot;http://www.w3.org/2000/svg&quot;><path d=&quot;M8 5v14l11-7z&quot;/></svg></button>
+          <button class="lib-pl-play-btn" data-action="play-custom" data-title="${encodeURIComponent(track.title)}" data-artist="${encodeURIComponent(track.artist)}" data-color="${track.color}" data-preview="${track.previewUrl || ''}" data-cover="${track.cover || ''}"><svg width=\'1em\' height=\'1em\' viewBox=\'0 0 24 24\' fill=\'currentColor\' xmlns=\'http://www.w3.org/2000/svg\'><path d=\'M8 5v14l11-7z\'/></svg></button>
         </div>
       </div>`
   }).join("");
@@ -889,9 +889,9 @@ function playlistSearchScreen() {
       <div class="pld-search-header">
         <button class="pld-back-btn" data-action="close-playlist-search">‹</button>
         <div class="pld-search-input-wrap">
-          <span class="search-icon"><svg width=&quot;1em&quot; height=&quot;1em&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;currentColor&quot; xmlns=&quot;http://www.w3.org/2000/svg&quot;><path d=&quot;M15.5 14h-.79l-.28-.27A6.471 6.471 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z&quot;/></svg></span>
+          <span class="search-icon"><svg width=\'1em\' height=\'1em\' viewBox=\'0 0 24 24\' fill=\'currentColor\' xmlns=\'http://www.w3.org/2000/svg\'><path d=\'M15.5 14h-.79l-.28-.27A6.471 6.471 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z\'/></svg></span>
           <input type="text" id="pld-search-input" value="${state.playlistSearchQuery}" placeholder="이 리스트에서 찾기" />
-          ${state.playlistSearchQuery ? '<button class="pld-search-clear" data-action="clear-pld-search"><svg width=&quot;1em&quot; height=&quot;1em&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;currentColor&quot; xmlns=&quot;http://www.w3.org/2000/svg&quot;><path d=&quot;M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z&quot;/></svg></button>' : ""}
+          ${state.playlistSearchQuery ? '<button class="pld-search-clear" data-action="clear-pld-search"><svg width=\'1em\' height=\'1em\' viewBox=\'0 0 24 24\' fill=\'currentColor\' xmlns=\'http://www.w3.org/2000/svg\'><path d=\'M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z\'/></svg></button>' : ""}
         </div>
       </div>
       <div class="pld-song-list">
@@ -932,12 +932,12 @@ function playlistEditScreen() {
   return `
       <div class="pld-edit-view" >
       <div class="pld-edit-top-bar">
-        <button class="pld-edit-close" data-action="close-edit-mode"><svg width=&quot;1em&quot; height=&quot;1em&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;currentColor&quot; xmlns=&quot;http://www.w3.org/2000/svg&quot;><path d=&quot;M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z&quot;/></svg></button>
+        <button class="pld-edit-close" data-action="close-edit-mode"><svg width=\'1em\' height=\'1em\' viewBox=\'0 0 24 24\' fill=\'currentColor\' xmlns=\'http://www.w3.org/2000/svg\'><path d=\'M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z\'/></svg></button>
         <h2>플레이리스트 편집</h2>
         <div style="width:24px;"></div>
       </div>
       <div class="pld-search-bar" data-action="open-playlist-search">
-        <span class="search-icon"><svg width=&quot;1em&quot; height=&quot;1em&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;currentColor&quot; xmlns=&quot;http://www.w3.org/2000/svg&quot;><path d=&quot;M15.5 14h-.79l-.28-.27A6.471 6.471 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z&quot;/></svg></span>
+        <span class="search-icon"><svg width=\'1em\' height=\'1em\' viewBox=\'0 0 24 24\' fill=\'currentColor\' xmlns=\'http://www.w3.org/2000/svg\'><path d=\'M15.5 14h-.79l-.28-.27A6.471 6.471 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z\'/></svg></span>
         <input type="text" placeholder="이 리스트에서 찾기" readonly />
       </div>
       <div class="pld-ctrl-row" style="margin-bottom: 8px;">
@@ -995,7 +995,7 @@ function queueScreen() {
       <div class="queue-song-item${isPlaying ? " is-playing" : ""}" ${state.queueEdit ? 'draggable="true"' : ''} data-action="${state.queueEdit ? "queue-toggle-select" : "queue-play-track"}" data-id="${trackId}" data-index="${idx}" >
         ${state.queueEdit ? `<div class="pld-checkbox${isSelected ? " is-checked" : ""}"></div>` : ""}
         <div class="queue-song-thumb" style="${coverBg}">
-          ${isPlaying && !state.queueEdit ? '<div class="queue-play-badge"><svg width=&quot;1em&quot; height=&quot;1em&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;currentColor&quot; xmlns=&quot;http://www.w3.org/2000/svg&quot;><path d=&quot;M8 5v14l11-7z&quot;/></svg></div>' : ""}
+          ${isPlaying && !state.queueEdit ? '<div class="queue-play-badge"><svg width=\'1em\' height=\'1em\' viewBox=\'0 0 24 24\' fill=\'currentColor\' xmlns=\'http://www.w3.org/2000/svg\'><path d=\'M8 5v14l11-7z\'/></svg></div>' : ""}
         </div>
         <div class="queue-song-info">
           <div class="queue-song-title${isPlaying ? " is-playing-title" : ""}">${track.title}</div>
@@ -1031,9 +1031,9 @@ function queueScreen() {
       </div>
       ${state.queueShowSearch ? `
         <div class="queue-search-input-wrap">
-          <span class="search-icon"><svg width=&quot;1em&quot; height=&quot;1em&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;currentColor&quot; xmlns=&quot;http://www.w3.org/2000/svg&quot;><path d=&quot;M15.5 14h-.79l-.28-.27A6.471 6.471 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z&quot;/></svg></span>
+          <span class="search-icon"><svg width=\'1em\' height=\'1em\' viewBox=\'0 0 24 24\' fill=\'currentColor\' xmlns=\'http://www.w3.org/2000/svg\'><path d=\'M15.5 14h-.79l-.28-.27A6.471 6.471 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z\'/></svg></span>
           <input type="text" id="queue-search-input" value="${state.queueSearchQuery}" placeholder="재생목록에서 검색" />
-          ${state.queueSearchQuery ? '<button class="pld-search-clear" data-action="clear-queue-search"><svg width=&quot;1em&quot; height=&quot;1em&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;currentColor&quot; xmlns=&quot;http://www.w3.org/2000/svg&quot;><path d=&quot;M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z&quot;/></svg></button>' : ""}
+          ${state.queueSearchQuery ? '<button class="pld-search-clear" data-action="clear-queue-search"><svg width=\'1em\' height=\'1em\' viewBox=\'0 0 24 24\' fill=\'currentColor\' xmlns=\'http://www.w3.org/2000/svg\'><path d=\'M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z\'/></svg></button>' : ""}
         </div>
       ` : ""
     }
@@ -1090,9 +1090,9 @@ function queueScreen() {
           <div class="queue-player-inner">
             <button class="queue-zap-btn" data-action="queue-zap" aria-label="빠른선곡"><img src="assets/queue_zap.svg" width="36" height="36" alt="zap" /></button>
             <div class="queue-player-ctrls">
-              <button class="queue-ctrl-btn" data-action="prev" aria-label="이전"><svg width=&quot;1em&quot; height=&quot;1em&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;currentColor&quot; xmlns=&quot;http://www.w3.org/2000/svg&quot;><path d=&quot;M6 6h2v12H6zm3.5 6l8.5 6V6z&quot;/></svg></button>
-              <button class="queue-ctrl-play" data-action="toggle" aria-label="${state.paused ? "재생" : "일시정지"}">${state.paused ? "<svg width=&quot;1em&quot; height=&quot;1em&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;currentColor&quot; xmlns=&quot;http://www.w3.org/2000/svg&quot;><path d=&quot;M8 5v14l11-7z&quot;/></svg>" : "<svg width=&quot;1em&quot; height=&quot;1em&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;currentColor&quot; xmlns=&quot;http://www.w3.org/2000/svg&quot;><path d=&quot;M6 19h4V5H6v14zm8-14v14h4V5h-4z&quot;/></svg>"}</button>
-              <button class="queue-ctrl-btn" data-action="next" aria-label="다음"><svg width=&quot;1em&quot; height=&quot;1em&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;currentColor&quot; xmlns=&quot;http://www.w3.org/2000/svg&quot;><path d=&quot;M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z&quot;/></svg></button>
+              <button class="queue-ctrl-btn" data-action="prev" aria-label="이전"><svg width=\'1em\' height=\'1em\' viewBox=\'0 0 24 24\' fill=\'currentColor\' xmlns=\'http://www.w3.org/2000/svg\'><path d=\'M6 6h2v12H6zm3.5 6l8.5 6V6z\'/></svg></button>
+              <button class="queue-ctrl-play" data-action="toggle" aria-label="${state.paused ? "재생" : "일시정지"}">${state.paused ? "<svg width=\'1em\' height=\'1em\' viewBox=\'0 0 24 24\' fill=\'currentColor\' xmlns=\'http://www.w3.org/2000/svg\'><path d=\'M8 5v14l11-7z\'/></svg>" : "<svg width=\'1em\' height=\'1em\' viewBox=\'0 0 24 24\' fill=\'currentColor\' xmlns=\'http://www.w3.org/2000/svg\'><path d=\'M6 19h4V5H6v14zm8-14v14h4V5h-4z\'/></svg>"}</button>
+              <button class="queue-ctrl-btn" data-action="next" aria-label="다음"><svg width=\'1em\' height=\'1em\' viewBox=\'0 0 24 24\' fill=\'currentColor\' xmlns=\'http://www.w3.org/2000/svg\'><path d=\'M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z\'/></svg></button>
             </div>
             <div class="queue-player-thumb" style="${current && current.cover ? `background-image:url(${current.cover}); background-size:cover;` : `background-color:${current && current.color ? current.color : '#8CC7BF'};`}"></div>
           </div>
@@ -1152,7 +1152,7 @@ function addSongScreen() {
   return `
     <div class="pld-page" style="background:#fff; height:100vh; display:flex; flex-direction:column; position:absolute; top:0; left:0; width:100%; z-index:2000;">
       <div class="pld-top-bar" style="border-bottom:none; display:flex; justify-content:space-between; align-items:center; padding:0 16px; height:56px;">
-        <button class="pld-back-btn" data-action="close-add-song" style="font-size:24px; background:none; border:none; cursor:pointer;"><svg width=&quot;1em&quot; height=&quot;1em&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;currentColor&quot; xmlns=&quot;http://www.w3.org/2000/svg&quot;><path d=&quot;M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z&quot;/></svg></button>
+        <button class="pld-back-btn" data-action="close-add-song" style="font-size:24px; background:none; border:none; cursor:pointer;"><svg width=\'1em\' height=\'1em\' viewBox=\'0 0 24 24\' fill=\'currentColor\' xmlns=\'http://www.w3.org/2000/svg\'><path d=\'M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z\'/></svg></button>
         <h2 style="font-size:18px; font-weight:700;">곡 추가</h2>
         <button data-action="submit-add-songs" style="background:none; border:none; font-size:16px; font-weight:600; color:${count > 0 ? '#1ed760' : '#ccc'}; cursor:${count > 0 ? 'pointer' : 'default'};">완료</button>
       </div>
@@ -1203,7 +1203,7 @@ function sheet() {
                     <div style="font-size:13px; color:#aaa;">${pl.tracks.length}곡</div>
                   </div>
                 </div>
-                <div data-action="queue-my-play-playlist" data-id="${pl.id}" style="font-size:24px; color:#141414; padding: 10px; cursor:pointer;"><svg width=&quot;1em&quot; height=&quot;1em&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;currentColor&quot; xmlns=&quot;http://www.w3.org/2000/svg&quot;><path d=&quot;M8 5v14l11-7z&quot;/></svg></div>
+                <div data-action="queue-my-play-playlist" data-id="${pl.id}" style="font-size:24px; color:#141414; padding: 10px; cursor:pointer;"><svg width=\'1em\' height=\'1em\' viewBox=\'0 0 24 24\' fill=\'currentColor\' xmlns=\'http://www.w3.org/2000/svg\'><path d=\'M8 5v14l11-7z\'/></svg></div>
               </div>
             `).join("") : `<div style="padding: 100px 0; text-align: center; color: #141414; font-size: 16px; font-weight: 700;">리스트가 없습니다.</div>`;
 
@@ -1231,9 +1231,9 @@ function miniPlayer() {
       <div class="mini">
         <div class="now" style="justify-content: center; color: #141414; font-size: 14px; font-weight: 500;">재생할 곡을 추가해 주세요.</div>
         <div class="controls">
-          <button data-action="prev" aria-label="이전" style="color:#000;"><svg width=&quot;1em&quot; height=&quot;1em&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;currentColor&quot; xmlns=&quot;http://www.w3.org/2000/svg&quot;><path d=&quot;M6 6h2v12H6zm3.5 6l8.5 6V6z&quot;/></svg></button>
-          <button class="play" data-action="toggle" aria-label="재생" style="color:#000;"><svg width=&quot;1em&quot; height=&quot;1em&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;currentColor&quot; xmlns=&quot;http://www.w3.org/2000/svg&quot;><path d=&quot;M8 5v14l11-7z&quot;/></svg></button>
-          <button data-action="next" aria-label="다음" style="color:#000;"><svg width=&quot;1em&quot; height=&quot;1em&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;currentColor&quot; xmlns=&quot;http://www.w3.org/2000/svg&quot;><path d=&quot;M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z&quot;/></svg></button>
+          <button data-action="prev" aria-label="이전" style="color:#000;"><svg width=\'1em\' height=\'1em\' viewBox=\'0 0 24 24\' fill=\'currentColor\' xmlns=\'http://www.w3.org/2000/svg\'><path d=\'M6 6h2v12H6zm3.5 6l8.5 6V6z\'/></svg></button>
+          <button class="play" data-action="toggle" aria-label="재생" style="color:#000;"><svg width=\'1em\' height=\'1em\' viewBox=\'0 0 24 24\' fill=\'currentColor\' xmlns=\'http://www.w3.org/2000/svg\'><path d=\'M8 5v14l11-7z\'/></svg></button>
+          <button data-action="next" aria-label="다음" style="color:#000;"><svg width=\'1em\' height=\'1em\' viewBox=\'0 0 24 24\' fill=\'currentColor\' xmlns=\'http://www.w3.org/2000/svg\'><path d=\'M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z\'/></svg></button>
           <button class="queue" data-action="queue" aria-label="재생목록" style="color:#000;">☰</button>
         </div>
       </div>
@@ -1243,9 +1243,9 @@ function miniPlayer() {
       <div class="mini" >
       <div class="now" data-action="open-full-player" style="cursor: pointer;"><strong>${track.title}</strong><span>${track.artist}</span></div>
       <div class="controls">
-        <button data-action="prev" aria-label="이전"><svg width=&quot;1em&quot; height=&quot;1em&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;currentColor&quot; xmlns=&quot;http://www.w3.org/2000/svg&quot;><path d=&quot;M6 6h2v12H6zm3.5 6l8.5 6V6z&quot;/></svg></button>
-        <button class="play" data-action="toggle" aria-label="${state.paused ? "재생" : "일시정지"}">${state.paused ? "<svg width=&quot;1em&quot; height=&quot;1em&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;currentColor&quot; xmlns=&quot;http://www.w3.org/2000/svg&quot;><path d=&quot;M8 5v14l11-7z&quot;/></svg>" : "<svg width=&quot;1em&quot; height=&quot;1em&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;currentColor&quot; xmlns=&quot;http://www.w3.org/2000/svg&quot;><path d=&quot;M6 19h4V5H6v14zm8-14v14h4V5h-4z&quot;/></svg>"}</button>
-        <button data-action="next" aria-label="다음"><svg width=&quot;1em&quot; height=&quot;1em&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;currentColor&quot; xmlns=&quot;http://www.w3.org/2000/svg&quot;><path d=&quot;M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z&quot;/></svg></button>
+        <button data-action="prev" aria-label="이전"><svg width=\'1em\' height=\'1em\' viewBox=\'0 0 24 24\' fill=\'currentColor\' xmlns=\'http://www.w3.org/2000/svg\'><path d=\'M6 6h2v12H6zm3.5 6l8.5 6V6z\'/></svg></button>
+        <button class="play" data-action="toggle" aria-label="${state.paused ? "재생" : "일시정지"}">${state.paused ? "<svg width=\'1em\' height=\'1em\' viewBox=\'0 0 24 24\' fill=\'currentColor\' xmlns=\'http://www.w3.org/2000/svg\'><path d=\'M8 5v14l11-7z\'/></svg>" : "<svg width=\'1em\' height=\'1em\' viewBox=\'0 0 24 24\' fill=\'currentColor\' xmlns=\'http://www.w3.org/2000/svg\'><path d=\'M6 19h4V5H6v14zm8-14v14h4V5h-4z\'/></svg>"}</button>
+        <button data-action="next" aria-label="다음"><svg width=\'1em\' height=\'1em\' viewBox=\'0 0 24 24\' fill=\'currentColor\' xmlns=\'http://www.w3.org/2000/svg\'><path d=\'M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z\'/></svg></button>
         <button class="queue" data-action="queue" aria-label="재생목록">☰</button>
       </div>
     </div> `;
@@ -1290,9 +1290,9 @@ function fullPlayerScreen() {
         
         <div style="display: flex; align-items: center; justify-content: space-between; padding: 0 20px;">
           <button data-action="seek-backward" style="background: none; border: none; color: #fff; font-size: 24px;">↺</button>
-          <button data-action="prev" style="background: none; border: none; color: #fff; font-size: 28px;"><svg width=&quot;1em&quot; height=&quot;1em&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;currentColor&quot; xmlns=&quot;http://www.w3.org/2000/svg&quot;><path d=&quot;M6 6h2v12H6zm3.5 6l8.5 6V6z&quot;/></svg></button>
-          <button data-action="toggle" style="background: none; border: none; color: #fff; font-size: 40px;">${state.paused ? "<svg width=&quot;1em&quot; height=&quot;1em&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;currentColor&quot; xmlns=&quot;http://www.w3.org/2000/svg&quot;><path d=&quot;M8 5v14l11-7z&quot;/></svg>" : "<svg width=&quot;1em&quot; height=&quot;1em&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;currentColor&quot; xmlns=&quot;http://www.w3.org/2000/svg&quot;><path d=&quot;M6 19h4V5H6v14zm8-14v14h4V5h-4z&quot;/></svg>"}</button>
-          <button data-action="next" style="background: none; border: none; color: #fff; font-size: 28px;"><svg width=&quot;1em&quot; height=&quot;1em&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;currentColor&quot; xmlns=&quot;http://www.w3.org/2000/svg&quot;><path d=&quot;M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z&quot;/></svg></button>
+          <button data-action="prev" style="background: none; border: none; color: #fff; font-size: 28px;"><svg width=\'1em\' height=\'1em\' viewBox=\'0 0 24 24\' fill=\'currentColor\' xmlns=\'http://www.w3.org/2000/svg\'><path d=\'M6 6h2v12H6zm3.5 6l8.5 6V6z\'/></svg></button>
+          <button data-action="toggle" style="background: none; border: none; color: #fff; font-size: 40px;">${state.paused ? "<svg width=\'1em\' height=\'1em\' viewBox=\'0 0 24 24\' fill=\'currentColor\' xmlns=\'http://www.w3.org/2000/svg\'><path d=\'M8 5v14l11-7z\'/></svg>" : "<svg width=\'1em\' height=\'1em\' viewBox=\'0 0 24 24\' fill=\'currentColor\' xmlns=\'http://www.w3.org/2000/svg\'><path d=\'M6 19h4V5H6v14zm8-14v14h4V5h-4z\'/></svg>"}</button>
+          <button data-action="next" style="background: none; border: none; color: #fff; font-size: 28px;"><svg width=\'1em\' height=\'1em\' viewBox=\'0 0 24 24\' fill=\'currentColor\' xmlns=\'http://www.w3.org/2000/svg\'><path d=\'M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z\'/></svg></button>
           <button data-action="seek-forward" style="background: none; border: none; color: #fff; font-size: 24px;">↻</button>
         </div>
       </div>
@@ -1302,9 +1302,9 @@ function fullPlayerScreen() {
 
 function loginScreen() {
   return `
-    <div style="background: #fff; width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 100; display: flex; flex-direction: column;">
+    <div style="background: #fff; width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 500; display: flex; flex-direction: column;">
       <header style="display: flex; align-items: center; justify-content: center; height: 56px; position: relative; border-bottom: 1px solid transparent;">
-        <button data-action="close-login" style="position: absolute; left: 16px; background: none; border: none; font-size: 24px; color: #141414; padding: 0; cursor: pointer; font-weight: 300;"><svg width=&quot;1em&quot; height=&quot;1em&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;currentColor&quot; xmlns=&quot;http://www.w3.org/2000/svg&quot;><path d=&quot;M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z&quot;/></svg></button>
+        <button data-action="close-login" style="position: absolute; left: 16px; background: none; border: none; font-size: 24px; color: #141414; padding: 0; cursor: pointer; font-weight: 300;"><svg width=\'1em\' height=\'1em\' viewBox=\'0 0 24 24\' fill=\'currentColor\' xmlns=\'http://www.w3.org/2000/svg\'><path d=\'M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z\'/></svg></button>
         <h2 style="font-size: 18px; font-weight: 700; color: #141414; margin: 0;">로그인</h2>
       </header>
       
@@ -1419,12 +1419,12 @@ function render() {
         <div class="pld-edit-toolbar-wrap" style="background:#0096fd;">
           <div class="pld-count-badge-floating" style="background:#0096fd; color:#fff; border: 2px solid #fff;">${state.selectedSearchIds.length}</div>
           <div class="pld-edit-toolbar" style="background:#0096fd; border: none; padding-top: 10px;">
-            <button class="pld-tool-btn" data-action="search-play-selected" style="color:#fff;"><span class="icon"><svg width=&quot;1em&quot; height=&quot;1em&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;currentColor&quot; xmlns=&quot;http://www.w3.org/2000/svg&quot;><path d=&quot;M8 5v14l11-7z&quot;/></svg></span><span>듣기</span></button>
-            <button class="pld-tool-btn" data-action="search-add-selected" style="color:#fff;"><span class="icon"><svg width=&quot;1em&quot; height=&quot;1em&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;currentColor&quot; xmlns=&quot;http://www.w3.org/2000/svg&quot;><path d=&quot;M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z&quot;/></svg></span><span>추가</span></button>
-            <button class="pld-tool-btn" data-action="search-save-selected" style="color:#fff;"><span class="icon"><svg width=&quot;1em&quot; height=&quot;1em&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;currentColor&quot; xmlns=&quot;http://www.w3.org/2000/svg&quot;><path d=&quot;M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z&quot;/></svg></span><span>담기</span></button>
-            <button class="pld-tool-btn" style="color:#fff;"><span class="icon"><svg width=&quot;1em&quot; height=&quot;1em&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;currentColor&quot; xmlns=&quot;http://www.w3.org/2000/svg&quot;><path d=&quot;M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z&quot;/></svg></span><span>다운</span></button>
-            <button class="pld-tool-btn" style="color:#fff;"><span class="icon"><svg width=&quot;1em&quot; height=&quot;1em&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;currentColor&quot; xmlns=&quot;http://www.w3.org/2000/svg&quot;><path d=&quot;M9 15h4v6h2v-6h4l-7-7-7 7zM5 3v2h14V3H5z&quot;/></svg></span><span>공유</span></button>
-            <button class="pld-tool-btn" data-action="search-clear-selected" style="color:#fff;"><span class="icon"><svg width=&quot;1em&quot; height=&quot;1em&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;currentColor&quot; xmlns=&quot;http://www.w3.org/2000/svg&quot;><path d=&quot;M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z&quot;/></svg></span><span>선택취소</span></button>
+            <button class="pld-tool-btn" data-action="search-play-selected" style="color:#fff;"><span class="icon"><svg width=\'1em\' height=\'1em\' viewBox=\'0 0 24 24\' fill=\'currentColor\' xmlns=\'http://www.w3.org/2000/svg\'><path d=\'M8 5v14l11-7z\'/></svg></span><span>듣기</span></button>
+            <button class="pld-tool-btn" data-action="search-add-selected" style="color:#fff;"><span class="icon"><svg width=\'1em\' height=\'1em\' viewBox=\'0 0 24 24\' fill=\'currentColor\' xmlns=\'http://www.w3.org/2000/svg\'><path d=\'M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z\'/></svg></span><span>추가</span></button>
+            <button class="pld-tool-btn" data-action="search-save-selected" style="color:#fff;"><span class="icon"><svg width=\'1em\' height=\'1em\' viewBox=\'0 0 24 24\' fill=\'currentColor\' xmlns=\'http://www.w3.org/2000/svg\'><path d=\'M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z\'/></svg></span><span>담기</span></button>
+            <button class="pld-tool-btn" style="color:#fff;"><span class="icon"><svg width=\'1em\' height=\'1em\' viewBox=\'0 0 24 24\' fill=\'currentColor\' xmlns=\'http://www.w3.org/2000/svg\'><path d=\'M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z\'/></svg></span><span>다운</span></button>
+            <button class="pld-tool-btn" style="color:#fff;"><span class="icon"><svg width=\'1em\' height=\'1em\' viewBox=\'0 0 24 24\' fill=\'currentColor\' xmlns=\'http://www.w3.org/2000/svg\'><path d=\'M9 15h4v6h2v-6h4l-7-7-7 7zM5 3v2h14V3H5z\'/></svg></span><span>공유</span></button>
+            <button class="pld-tool-btn" data-action="search-clear-selected" style="color:#fff;"><span class="icon"><svg width=\'1em\' height=\'1em\' viewBox=\'0 0 24 24\' fill=\'currentColor\' xmlns=\'http://www.w3.org/2000/svg\'><path d=\'M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z\'/></svg></span><span>선택취소</span></button>
           </div>
         </div>
         `
@@ -1446,7 +1446,7 @@ function render() {
       ${state.toastMessage ? `
       <div class="toast-container" style="position: fixed; bottom: 85px; left: 50%; transform: translateX(-50%); background: #1a1a1a; color: white; padding: 14px 20px; border-radius: 12px; display: flex; align-items: center; justify-content: space-between; width: 90%; max-width: 340px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); z-index: 10000; animation: fadein 0.3s;">
         <span style="font-size: 15px; font-weight: 400;">${state.toastMessage}</span>
-        <button data-action="close-toast" style="background: none; border: none; color: #888; font-size: 20px; line-height: 1; padding: 0 0 0 16px; cursor: pointer;"><svg width=&quot;1em&quot; height=&quot;1em&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;currentColor&quot; xmlns=&quot;http://www.w3.org/2000/svg&quot;><path d=&quot;M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z&quot;/></svg></button>
+        <button data-action="close-toast" style="background: none; border: none; color: #888; font-size: 20px; line-height: 1; padding: 0 0 0 16px; cursor: pointer;"><svg width=\'1em\' height=\'1em\' viewBox=\'0 0 24 24\' fill=\'currentColor\' xmlns=\'http://www.w3.org/2000/svg\'><path d=\'M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z\'/></svg></button>
       </div>` : ""}
       ${state.showFullPlayer ? fullPlayerScreen() : ""}
     `;
@@ -1662,7 +1662,7 @@ function saveToPlaylistSheet() {
       
       <div data-action="search-save-create-new" style="display: flex; align-items: center; gap: 16px; margin-bottom: 24px; cursor: pointer;">
         <div style="width: 56px; height: 56px; background: #e5e5e5; border-radius: 8px; display: flex; justify-content: center; align-items: center;">
-          <span style="font-size: 24px; color: #fff;"><svg width=&quot;1em&quot; height=&quot;1em&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;currentColor&quot; xmlns=&quot;http://www.w3.org/2000/svg&quot;><path d=&quot;M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z&quot;/></svg></span>
+          <span style="font-size: 24px; color: #fff;"><svg width=\'1em\' height=\'1em\' viewBox=\'0 0 24 24\' fill=\'currentColor\' xmlns=\'http://www.w3.org/2000/svg\'><path d=\'M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z\'/></svg></span>
         </div>
         <div style="font-size: 16px; font-weight: 500; color: #141414;">새 플레이리스트 만들기</div>
       </div>
@@ -1684,8 +1684,8 @@ function promptModal() {
   const dateStr = `${today.getFullYear()}.${String(today.getMonth() + 1).padStart(2, '0')}.${String(today.getDate()).padStart(2, '0')}`;
 
   return `
-    <div class="sheet-overlay" style="z-index: 100;" data-action="prompt-cancel"></div>
-    <div style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 280px; background: #fff; border-radius: 16px; padding: 24px; z-index: 101; box-shadow: 0 4px 20px rgba(0,0,0,0.15); display: flex; flex-direction: column; align-items: center;">
+    <div class="sheet-overlay" style="z-index: 500;" data-action="prompt-cancel"></div>
+    <div style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 280px; background: #fff; border-radius: 16px; padding: 24px; z-index: 501; box-shadow: 0 4px 20px rgba(0,0,0,0.15); display: flex; flex-direction: column; align-items: center;">
       <div style="font-size: 18px; font-weight: 700; margin-bottom: 24px; color: #000;">플레이리스트명</div>
       <input type="text" id="prompt-input" placeholder="${dateStr}" style="width: 100%; height: 48px; background: #f8f8f8; border: none; border-radius: 8px; padding: 0 16px; font-size: 15px; color: #141414; box-sizing: border-box; margin-bottom: 24px; outline: none;" />
       <div style="display: flex; width: 100%;">
@@ -1706,7 +1706,7 @@ function audioScreen() {
         <div data-action="audio-detail" data-id="${ep.trackId}" data-type="${type}" style="flex: none; width: 140px; cursor: pointer;">
           <div style="width: 140px; height: 140px; border-radius: 8px; overflow: hidden; margin-bottom: 8px; position: relative;">
             ${ep.artworkUrl600 ? `<img src="${ep.artworkUrl600}" style="width: 100%; height: 100%; object-fit: cover;" />` : `<div style="width: 100%; height: 100%; background: #e0e0e0;"></div>`}
-            <div style="position: absolute; bottom: 8px; right: 8px; width: 28px; height: 28px; background: rgba(0,0,0,0.5); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 12px;"><svg width=&quot;1em&quot; height=&quot;1em&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;currentColor&quot; xmlns=&quot;http://www.w3.org/2000/svg&quot;><path d=&quot;M8 5v14l11-7z&quot;/></svg></div>
+            <div style="position: absolute; bottom: 8px; right: 8px; width: 28px; height: 28px; background: rgba(0,0,0,0.5); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 12px;"><svg width=\'1em\' height=\'1em\' viewBox=\'0 0 24 24\' fill=\'currentColor\' xmlns=\'http://www.w3.org/2000/svg\'><path d=\'M8 5v14l11-7z\'/></svg></div>
           </div>
           <div style="font-size: 14px; font-weight: 600; color: #141414; line-height: 1.3; margin-bottom: 4px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${ep.trackName}</div>
           <div style="font-size: 13px; color: #888; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${ep.collectionName}</div>
@@ -1726,7 +1726,7 @@ function audioScreen() {
       <div style="padding: 16px 20px 0; flex: none;">
         <div style="position: relative; width: 100%; height: 48px;">
           <input type="text" id="audio-search-input" value="${state.audioSearchQuery || ''}" placeholder="팟캐스트, 에피소드 검색" style="width: 100%; height: 100%; border: none; background: #f4f4f4; border-radius: 8px; padding: 0 16px 0 44px; font-size: 15px; box-sizing: border-box; outline: none;" />
-          <span style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); font-size: 16px;"><svg width=&quot;1em&quot; height=&quot;1em&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;currentColor&quot; xmlns=&quot;http://www.w3.org/2000/svg&quot;><path d=&quot;M15.5 14h-.79l-.28-.27A6.471 6.471 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z&quot;/></svg></span>
+          <span style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); font-size: 16px;"><svg width=\'1em\' height=\'1em\' viewBox=\'0 0 24 24\' fill=\'currentColor\' xmlns=\'http://www.w3.org/2000/svg\'><path d=\'M15.5 14h-.79l-.28-.27A6.471 6.471 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z\'/></svg></span>
         </div>
       </div>
       
@@ -1786,7 +1786,7 @@ function audioDetailScreen() {
             <div style="font-size: 14px; font-weight: 600; color: #141414; line-height: 1.3; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${e.trackName}</div>
             <div style="font-size: 12px; color: #888;">${eDate}</div>
           </div>
-          <button style="background: none; border: none; font-size: 18px; color: #888;"><svg width=&quot;1em&quot; height=&quot;1em&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;currentColor&quot; xmlns=&quot;http://www.w3.org/2000/svg&quot;><path d=&quot;M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z&quot;/></svg></button>
+          <button style="background: none; border: none; font-size: 18px; color: #888;"><svg width=\'1em\' height=\'1em\' viewBox=\'0 0 24 24\' fill=\'currentColor\' xmlns=\'http://www.w3.org/2000/svg\'><path d=\'M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z\'/></svg></button>
         </div>
       `;
     }).join("");
@@ -1796,7 +1796,7 @@ function audioDetailScreen() {
     <div style="flex: 1; min-height: 0; display: flex; flex-direction: column; background: #fff;">
       <div style="display: flex; align-items: center; justify-content: space-between; height: 56px; padding: 0 16px;">
         <button data-action="audio-detail-back" style="font-size: 24px; background: none; border: none; cursor: pointer;">‹</button>
-        <button style="font-size: 20px; background: none; border: none; font-weight: bold; color: #333;"><svg width=&quot;1em&quot; height=&quot;1em&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;currentColor&quot; xmlns=&quot;http://www.w3.org/2000/svg&quot;><path d=&quot;M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z&quot;/></svg></button>
+        <button style="font-size: 20px; background: none; border: none; font-weight: bold; color: #333;"><svg width=\'1em\' height=\'1em\' viewBox=\'0 0 24 24\' fill=\'currentColor\' xmlns=\'http://www.w3.org/2000/svg\'><path d=\'M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z\'/></svg></button>
       </div>
       <div id="audio-detail-scroll-container" style="flex: 1; overflow-y: auto; padding: 0 20px 40px;" onscroll="handleAudioDetailScroll(this)">
         <img src="${ep.artworkUrl600}" style="width: 100%; aspect-ratio: 1; border-radius: 8px; object-fit: cover; margin-bottom: 24px;" />
@@ -1807,7 +1807,7 @@ function audioDetailScreen() {
           <div style="color: #888; font-size: 15px;">💬 ${ep.trackCount ? ep.trackCount + " 에피소드" : "53"}</div>
         </div>
         
-        <button data-action="audio-play-all" style="width: 100%; background: #f4f4f4; border: none; border-radius: 8px; padding: 16px; font-size: 16px; font-weight: bold; color: #141414; margin-bottom: 24px; display: flex; align-items: center; justify-content: center; gap: 8px;"><span style="font-size: 14px;"><svg width=&quot;1em&quot; height=&quot;1em&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;currentColor&quot; xmlns=&quot;http://www.w3.org/2000/svg&quot;><path d=&quot;M8 5v14l11-7z&quot;/></svg></span> 전체듣기</button>
+        <button data-action="audio-play-all" style="width: 100%; background: #f4f4f4; border: none; border-radius: 8px; padding: 16px; font-size: 16px; font-weight: bold; color: #141414; margin-bottom: 24px; display: flex; align-items: center; justify-content: center; gap: 8px;"><span style="font-size: 14px;"><svg width=\'1em\' height=\'1em\' viewBox=\'0 0 24 24\' fill=\'currentColor\' xmlns=\'http://www.w3.org/2000/svg\'><path d=\'M8 5v14l11-7z\'/></svg></span> 전체듣기</button>
         
         <div style="font-size: 15px; color: #333; line-height: 1.6; white-space: pre-wrap; margin-bottom: 32px;">${ep.collectionName}의 팟캐스트입니다.</div>
         
