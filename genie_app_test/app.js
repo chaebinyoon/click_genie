@@ -418,21 +418,20 @@ function searchTrackButton(track, index) {
   const titleColor = isSelected ? "#0096fd" : "#141414";
 
   return `
-      <div class="track" style="padding-left: 10px; background-color: ${highlightColor}; display: flex; align-items: center; width: 100%; border: none; cursor: pointer; padding-bottom: 8px;" >
-        <div data-action="toggle-search-select" data-id="${track.id}" style="display: flex; align-items: center; flex: 1;">
-          <img class="cover" src="${track.coverUrl}" alt="" style="object-fit: cover; width: 44px; height: 44px; border-radius: 4px;" />
-          <span class="meta" style="margin-left: 12px; display: flex; flex-direction: column;">
-            <strong style="color: ${titleColor}; font-size: 15px; font-weight: 500; margin-bottom: 2px;">${track.title}</strong>
-            <em style="color: ${isSelected ? '#0096fd' : '#888'}; font-size: 13px;">${track.artist}</em>
+      <div class="track" style="padding-left: 10px; background-color: ${highlightColor}; display: flex; align-items: center; width: 100%; border: none; cursor: pointer; padding-bottom: 8px; box-sizing: border-box;" >
+        <div data-action="toggle-search-select" data-id="${track.id}" style="display: flex; align-items: center; flex: 1; min-width: 0;">
+          <img class="cover" src="${track.coverUrl}" alt="" style="object-fit: cover; width: 44px; height: 44px; border-radius: 4px; flex-shrink: 0;" />
+          <span class="meta" style="margin-left: 12px; display: flex; flex-direction: column; min-width: 0; flex: 1;">
+            <strong style="color: ${titleColor}; font-size: 15px; font-weight: 500; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${track.title}</strong>
+            <em style="color: ${isSelected ? '#0096fd' : '#888'}; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${track.artist}</em>
           </span>
         </div>
-        <div style="display: flex; align-items: center; margin-left: auto;">
+        <div style="display: flex; align-items: center; margin-left: auto; flex-shrink: 0; padding-right: 10px;">
           <button data-action="play-search" data-index="${index}" style="background: none; border: none; padding: 10px; cursor: pointer;">
             ${track.previewUrl
       ? (isPlayingNow && !state.paused ? '<span style="font-size:16px; color:#141414;">❚❚</span>' : '<span style="font-size:16px; color:#141414;">▶</span>')
       : ""}
           </button>
-          <button data-action="song-more" style="background: none; border: none; padding: 10px; cursor: pointer; color: #888;">⋮</button>
         </div>
       </div> `;
 }
@@ -685,7 +684,6 @@ function playlistDetailScreen() {
           </div>
           <div class="pld-song-actions">
             <button class="lib-pl-play-btn" data-action="play-custom" data-title="${encodeURIComponent(track.title)}" data-artist="${encodeURIComponent(track.artist)}" data-color="${track.color}" data-preview="${track.previewUrl || ''}" data-cover="${track.cover || ''}">▶</button>
-            <button class="lib-pl-more-btn" data-action="song-more">⋮</button>
           </div>
         </div> `;
   }).join("");
@@ -784,7 +782,6 @@ function playlistSearchScreen() {
         </div>
         <div class="pld-song-actions">
           <button class="lib-pl-play-btn" data-action="play-custom" data-title="${encodeURIComponent(track.title)}" data-artist="${encodeURIComponent(track.artist)}" data-color="${track.color}" data-preview="${track.previewUrl || ''}" data-cover="${track.cover || ''}">▶</button>
-          <button class="lib-pl-more-btn">⋮</button>
         </div>
       </div>`
   }).join("");
@@ -913,7 +910,6 @@ function queueScreen() {
         ` : `
           <div class="queue-song-meta">
             <span class="queue-song-time">${track.time || "00:30"}</span>
-            <button class="queue-song-more" data-action="queue-track-more" data-id="${trackId}">⋮</button>
           </div>
         `}
       </div> `;
@@ -972,8 +968,8 @@ function queueScreen() {
       <div class="queue-song-list">
         ${state.queueTab === "my" && !state.queueMyPlaylistId ? `
           <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; padding-top:100px;">
-            <div style="font-size:16px; color:#555; font-weight:600; margin-bottom:16px;">나의 플레이리스트를 선택하세요!</div>
-            <button data-action="queue-my-open-sheet" style="padding:10px 16px; background:#f4f4f4; color:#555; border:none; border-radius:4px; font-size:14px; font-weight:600; cursor:pointer;">플레이리스트 보기</button>
+            <div style="font-size:16px; color:#141414; font-weight:700; margin-bottom:16px;">나의 플레이리스트를 선택하세요!</div>
+            <button data-action="queue-my-open-sheet" style="padding:10px 16px; background:#dcdcdc; color:#333; border:none; border-radius:4px; font-size:14px; font-weight:600; cursor:pointer;">플레이리스트 보기</button>
           </div>
         ` : (state.queueTab === "external" ? `
           <div style="padding: 16px; text-align: center; border-bottom: 1px solid #f4f4f4; margin-bottom: 8px;">
@@ -1102,14 +1098,7 @@ function sheet() {
   if (state.sheet === "pass") return `<div class="sheet-back" data-action="close-sheet" > <div class="sheet" data-stop><h3>이용권</h3><p>광고 없이 고음질로 들을 수 있습니다.</p><button class="close" data-action="close-sheet">닫기</button></div></div> `;
   if (state.sheet === "queue") return `<div class="sheet-back" data-action="close-sheet" > <div class="sheet" data-stop><h3>재생목록</h3>${tracks.map((t, i) => `<button class="queue-item${state.index === i ? " is-on" : ""}" data-action="play" data-index="${i}"><span class="swatch" style="background:${t.color}"></span><strong>${t.title}</strong></button>`).join("")}</div></div> `;
   if (state.sheet === "queue-my-playlist-select") {
-    return `
-      <div class="sheet-back" data-action="close-sheet">
-        <div class="sheet" style="padding:0; background:#fff; border-radius:16px 16px 0 0;" data-stop>
-          <div style="padding:16px; text-align:center;">
-            <div style="width:40px; height:4px; background:#ddd; border-radius:2px; margin: 0 auto 12px;"></div>
-          </div>
-          <div style="max-height: 400px; overflow-y:auto; padding-bottom: 20px;">
-            ${myPlaylists.map(pl => `
+    const listHtml = myPlaylists.length > 0 ? myPlaylists.map(pl => `
               <div style="display:flex; align-items:center; padding:12px 24px;">
                 <div data-action="queue-my-select-playlist" data-id="${pl.id}" style="display:flex; align-items:center; flex:1; cursor:pointer;">
                   <div style="width:48px; height:48px; background:#8CC7BF; border-radius:4px; margin-right:16px;"></div>
@@ -1120,7 +1109,16 @@ function sheet() {
                 </div>
                 <div data-action="queue-my-play-playlist" data-id="${pl.id}" style="font-size:24px; color:#141414; padding: 10px; cursor:pointer;">▶</div>
               </div>
-            `).join("")}
+            `).join("") : `<div style="padding: 100px 0; text-align: center; color: #141414; font-size: 16px; font-weight: 700;">리스트가 없습니다.</div>`;
+
+    return `
+      <div class="sheet-back" data-action="close-sheet">
+        <div class="sheet" style="padding:0; background:#fff; border-radius:16px 16px 0 0;" data-stop>
+          <div style="padding: 24px 24px 16px 24px;">
+            <div style="font-size: 18px; font-weight: 700; color: #141414;">내 플레이리스트 선택</div>
+          </div>
+          <div style="max-height: 400px; min-height: 200px; overflow-y:auto; padding-bottom: 20px;">
+            ${listHtml}
           </div>
           <button data-action="close-sheet" style="width:100%; padding:16px; background:#fff; border:none; border-top: 1px solid #f0f0f0; font-size:15px; color:#888; font-weight:600; cursor:pointer;">취소</button>
         </div>
