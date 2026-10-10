@@ -2923,7 +2923,9 @@ app.addEventListener("keydown", (event) => {
 
 // Drag and Drop Logic
 let draggedItemInfo = null;
+let touchHoveredItem = null;
 
+// Desktop HTML5 Drag & Drop
 app.addEventListener("dragstart", (e) => {
   const item = e.target.closest(".pld-edit-item") || e.target.closest(".queue-song-item");
   if (item) {
@@ -2954,43 +2956,95 @@ app.addEventListener("drop", (e) => {
   if (item) {
     e.preventDefault();
     item.style.borderTop = "";
-    const sourceId = draggedItemInfo;
-    const targetId = item.dataset.id;
-
-    if (sourceId && targetId && sourceId !== targetId) {
-      // Check if playlist or queue
-      if (item.classList.contains("pld-edit-item")) {
-        const pl = getCurrentPlaylist();
-        if (pl) {
-          const fromIdx = pl.tracks.findIndex(t => t.id.toString() === sourceId);
-          const toIdx = pl.tracks.findIndex(t => t.id.toString() === targetId);
-          if (fromIdx > -1 && toIdx > -1) {
-            const track = pl.tracks.splice(fromIdx, 1)[0];
-            pl.tracks.splice(toIdx, 0, track);
-            render();
-          }
-        }
-      } else if (item.classList.contains("queue-song-item")) {
-        const fromIdx = state.queueTracks.findIndex(t => (t.id || t.title).toString() === sourceId);
-        const toIdx = state.queueTracks.findIndex(t => (t.id || t.title).toString() === targetId);
-        if (fromIdx > -1 && toIdx > -1) {
-          const track = state.queueTracks.splice(fromIdx, 1)[0];
-          state.queueTracks.splice(toIdx, 0, track);
-          render();
-        }
-      }
-    }
+    handleDrop(draggedItemInfo, item.dataset.id, item);
   }
-  const allItems = document.querySelectorAll(".pld-edit-item, .queue-song-item");
-  allItems.forEach(i => { i.classList.remove("dragging"); i.style.borderTop = ""; });
-  draggedItemInfo = null;
+  cleanupDrag();
 });
 
 app.addEventListener("dragend", (e) => {
+  cleanupDrag();
+});
+
+// Mobile Touch Drag & Drop
+app.addEventListener("touchstart", (e) => {
+  const handle = e.target.closest(".pld-drag-handle");
+  if (!handle) return;
+  const item = handle.closest(".pld-edit-item") || handle.closest(".queue-song-item");
+  if (item) {
+    draggedItemInfo = item.dataset.id;
+    setTimeout(() => item.classList.add("dragging"), 0);
+    touchHoveredItem = null;
+  }
+}, { passive: false });
+
+app.addEventListener("touchmove", (e) => {
+  const handle = e.target.closest(".pld-drag-handle");
+  if (!handle || !draggedItemInfo) return;
+  e.preventDefault(); // Prevent scroll
+  
+  const touch = e.touches[0];
+  const draggingEl = document.querySelector(".dragging");
+  if (draggingEl) draggingEl.style.pointerEvents = "none";
+  
+  const elementUnderTouch = document.elementFromPoint(touch.clientX, touch.clientY);
+  
+  if (draggingEl) draggingEl.style.pointerEvents = "";
+
+  const item = elementUnderTouch ? (elementUnderTouch.closest(".pld-edit-item") || elementUnderTouch.closest(".queue-song-item")) : null;
+  
+  const allItems = document.querySelectorAll(".pld-edit-item, .queue-song-item");
+  allItems.forEach(i => i.style.borderTop = "");
+  
+  if (item && item.dataset.id !== draggedItemInfo) {
+    item.style.borderTop = "2px solid #141414";
+    touchHoveredItem = item;
+  } else {
+    touchHoveredItem = null;
+  }
+}, { passive: false });
+
+app.addEventListener("touchend", (e) => {
+  const handle = e.target.closest(".pld-drag-handle");
+  if (!handle || !draggedItemInfo) return;
+  
+  if (touchHoveredItem) {
+    touchHoveredItem.style.borderTop = "";
+    handleDrop(draggedItemInfo, touchHoveredItem.dataset.id, touchHoveredItem);
+  }
+  cleanupDrag();
+});
+
+function handleDrop(sourceId, targetId, item) {
+  if (sourceId && targetId && sourceId !== targetId) {
+    if (item.classList.contains("pld-edit-item")) {
+      const pl = getCurrentPlaylist();
+      if (pl) {
+        const fromIdx = pl.tracks.findIndex(t => t.id.toString() === sourceId);
+        const toIdx = pl.tracks.findIndex(t => t.id.toString() === targetId);
+        if (fromIdx > -1 && toIdx > -1) {
+          const track = pl.tracks.splice(fromIdx, 1)[0];
+          pl.tracks.splice(toIdx, 0, track);
+          render();
+        }
+      }
+    } else if (item.classList.contains("queue-song-item")) {
+      const fromIdx = state.queueTracks.findIndex(t => (t.id || t.title).toString() === sourceId);
+      const toIdx = state.queueTracks.findIndex(t => (t.id || t.title).toString() === targetId);
+      if (fromIdx > -1 && toIdx > -1) {
+        const track = state.queueTracks.splice(fromIdx, 1)[0];
+        state.queueTracks.splice(toIdx, 0, track);
+        render();
+      }
+    }
+  }
+}
+
+function cleanupDrag() {
   const allItems = document.querySelectorAll(".pld-edit-item, .queue-song-item");
   allItems.forEach(i => { i.classList.remove("dragging"); i.style.borderTop = ""; });
   draggedItemInfo = null;
-});
+  touchHoveredItem = null;
+}
 
 // --- 6. 초기 실행 및 인기차트 로딩 ---
 async function fetchTopTracks() {

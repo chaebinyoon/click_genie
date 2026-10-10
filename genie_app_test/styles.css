@@ -1383,6 +1383,7 @@ button {
   cursor: grab;
   flex: none;
   margin-left: auto;
+  touch-action: none;
 }
 
 /* 하단 파란색 액션 툴바 */
