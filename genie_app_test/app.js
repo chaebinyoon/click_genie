@@ -111,6 +111,7 @@ const state = {
   queueSortOrder: "default",
   queueTracks: [],
   toastMessage: null,
+  showLogin: false,
 };
 
 const app = document.getElementById("app");
@@ -1204,6 +1205,57 @@ function fullPlayerScreen() {
   `;
 }
 
+function loginScreen() {
+  return `
+    <div style="background: #fff; width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 100; display: flex; flex-direction: column;">
+      <header style="display: flex; align-items: center; justify-content: center; height: 56px; position: relative; border-bottom: 1px solid transparent;">
+        <button data-action="close-login" style="position: absolute; left: 16px; background: none; border: none; font-size: 24px; color: #141414; padding: 0; cursor: pointer; font-weight: 300;">✕</button>
+        <h2 style="font-size: 18px; font-weight: 700; color: #141414; margin: 0;">로그인</h2>
+      </header>
+      
+      <div style="padding: 24px 20px; flex: 1;">
+        <div style="text-align: right; margin-bottom: 12px;">
+          <span style="font-size: 13px; color: #555; cursor: pointer; display: flex; align-items: center; justify-content: flex-end; gap: 4px;">키보드 자판보기 <img src="assets/queue_chevron_down.svg" width="10" height="6" alt="" style="opacity: 0.5;"/></span>
+        </div>
+        
+        <input type="text" placeholder="지니 아이디" style="width: 100%; padding: 16px; background: #f8f8f8; border: none; border-radius: 4px; font-size: 15px; margin-bottom: 12px; box-sizing: border-box; outline: none; color: #141414;" />
+        <input type="password" placeholder="비밀번호" style="width: 100%; padding: 16px; background: #f8f8f8; border: none; border-radius: 4px; font-size: 15px; margin-bottom: 24px; box-sizing: border-box; outline: none; color: #141414;" />
+        
+        <button data-action="close-login" style="width: 100%; padding: 16px; background: #0096fd; color: #fff; border: none; border-radius: 4px; font-size: 16px; font-weight: bold; margin-bottom: 24px; cursor: pointer;">로그인</button>
+        
+        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: #333;">
+          <span style="cursor: pointer; font-weight: 500;">회원가입 &gt;</span>
+          <span>
+            <span style="cursor: pointer; color: #555;">아이디 찾기</span> <span style="color: #ddd; margin: 0 8px;">|</span> <span style="cursor: pointer; color: #555;">비밀번호 찾기</span>
+          </span>
+        </div>
+        
+        <div style="display: flex; justify-content: center; gap: 16px; margin-top: 48px;">
+          <button style="width: 50px; height: 50px; border-radius: 50%; background: #03c75a; border: none; padding: 0; display: flex; justify-content: center; align-items: center; cursor: pointer;">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M16 19.5H19.5V4.5H16L8 12.5V4.5H4.5V19.5H8L16 11.5V19.5Z" fill="white"/></svg>
+          </button>
+          <button style="width: 50px; height: 50px; border-radius: 50%; background: #fee500; border: none; padding: 0; display: flex; justify-content: center; align-items: center; cursor: pointer;">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 4C6.5 4 2 7.6 2 12c0 2.5 1.4 4.8 3.6 6.3-.3 1.2-1 3.5-1 3.5s-.1.2 0 .2.2 0 .3-.1l4.2-2.8c.9.2 1.9.4 2.9.4 5.5 0 10-3.6 10-8s-4.5-8-10-8z" fill="#3c1e1e"/></svg>
+          </button>
+          <button style="width: 50px; height: 50px; border-radius: 50%; background: #3b5998; border: none; padding: 0; display: flex; justify-content: center; align-items: center; cursor: pointer;">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M15 8H17V5H14C11.5 5 10 6.5 10 9V11H8V14H10V21H13V14H16L17 11H13V9C13 8.5 13.5 8 14 8H15Z" fill="white"/></svg>
+          </button>
+          <button style="width: 50px; height: 50px; border-radius: 50%; background: #000; border: none; padding: 0; display: flex; justify-content: center; align-items: center; cursor: pointer;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M18.9 3H21.5L14 11.5L22.5 21H16.5L11.5 14L5.5 21H3L11 12L3 3H9.5L14 9.5L18.9 3ZM17.5 19H19L7 5H5.5L17.5 19Z" fill="white"/></svg>
+          </button>
+          <button style="width: 50px; height: 50px; border-radius: 50%; background: #000; border: none; padding: 0; display: flex; justify-content: center; align-items: center; cursor: pointer;">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M16 4.5C16.8 3.5 17.3 2.3 17.1 1C15.9 1.1 14.5 1.8 13.6 2.8C12.9 3.6 12.3 4.9 12.5 6.2C13.8 6.3 15.2 5.5 16 4.5ZM17.3 13.5C17.3 10.3 19.9 8.8 20 8.7C18.4 6.4 16 6 15.2 5.9C13.1 5.7 11.1 7.2 10 7.2C8.9 7.2 7.3 5.9 5.5 6C3.2 6 1.1 7.4 0 9.4C-2.2 13.3 1.3 19.2 3.5 22.3C4.5 23.8 5.7 25.5 7.4 25.4C8.9 25.3 9.5 24.3 11.4 24.3C13.3 24.3 13.8 25.4 15.4 25.4C17.1 25.4 18.1 23.8 19.1 22.3C20.4 20.4 20.9 18.6 20.9 18.5C20.8 18.4 17.3 17.2 17.3 13.5Z" fill="white" transform="scale(0.85) translate(2,0)"/></svg>
+          </button>
+        </div>
+      </div>
+      
+      <div style="padding: 24px; font-size: 13px; color: #888; line-height: 1.5; letter-spacing: -0.3px;">
+        &middot; 로그인 완료 시 지니앱에 '자동 로그인' 됩니다. 본인 기기가 아니거나 여러 사람이 사용중인 기기인 경우 [내정보]에서 '로그아웃'을 해주세요.
+      </div>
+    </div>
+  `;
+}
+
 function render() {
   // [요구사항 1] 전체 DOM 갱신 시 스크롤 포지션 리셋 방지 로직
   const mainEl = document.querySelector(".main");
@@ -1230,6 +1282,8 @@ function render() {
         ${miniPlayer()}
       </div>
     `;
+  } else if (state.showLogin) {
+    app.innerHTML = loginScreen();
   } else {
     const showGlobalHeader = state.tab === "home";
     const showChips = state.tab === "home" && state.screen === "home";
@@ -1732,6 +1786,14 @@ app.addEventListener("click", (event) => {
 
   if (action === "close-toast") {
     state.toastMessage = null;
+    return render();
+  }
+
+  if (action === "profile") {
+    state.showLogin = true;
+    return render();
+  } else if (action === "close-login") {
+    state.showLogin = false;
     return render();
   }
 
