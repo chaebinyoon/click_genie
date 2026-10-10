@@ -634,22 +634,54 @@ function searchAlbumScreen() {
   const tracksHtml = state.isLoadingAlbum
     ? `<div style="padding: 60px 0; text-align: center; color: #888; font-size: 14px;" > 트랙 정보를 불러오는 중입니다...</div> `
     : state.currentAlbumTracks.length > 0
-      ? `<div class="track-list" style="margin-top: 16px;" > ${state.currentAlbumTracks.map(albumTrackButton).join("")}</div> `
+      ? `<div class="pld-song-list">
+          ${state.currentAlbumTracks.map((track, i) => {
+            const isCurrent = state.nowPlaying?.title === track.title;
+            const isSelected = state.selectedSearchIds && state.selectedSearchIds.includes(track.id.toString());
+            const bg = isSelected ? "rgba(0,150,253,0.1)" : (isCurrent ? "#f7f7f7" : "transparent");
+            const titleColor = isSelected ? "#0096fd" : "#141414";
+            const artistColor = isSelected ? "#0096fd" : "#888";
+            const coverBg = track.coverUrl ? `background-image:url(${track.coverUrl}); background-size:cover;` : `background-color:#e0e0e0;`;
+            return `
+              <div class="pld-song-item" style="background-color: ${bg};" >
+                <div data-action="toggle-search-select" data-id="${track.id}" style="display: flex; align-items: center; flex: 1; min-width: 0;">
+                  <div class="pld-song-thumb" style="${coverBg}; flex-shrink: 0; border-radius: 4px;"></div>
+                  <div class="pld-song-info" style="flex: 1; min-width: 0; margin-left: 12px; margin-right: 0;">
+                    <div class="pld-song-title" style="color: ${titleColor};">${track.title}</div>
+                    <div class="pld-song-artist" style="color: ${artistColor};">${track.artist}</div>
+                  </div>
+                </div>
+                <div class="pld-song-actions">
+                  <button class="lib-pl-play-btn" data-action="play-album-track" data-index="${i}">▶</button>
+                </div>
+              </div> `;
+          }).join("")}
+         </div> `
       : `<div style="padding: 60px 0; text-align: center; color: #888; font-size: 14px;" > 트랙 정보가 없습니다.</div> `;
 
   return `
-      <section class="page" style="padding-bottom: 100px;" >
-      <button class="back" data-action="close-album" style="background: none; border: none; font-size: 16px; color: #141414; padding: 0 0 16px 0; cursor: pointer; display: flex; align-items: center; gap: 4px;">‹ 뒤로</button>
-      <div style="display: flex; gap: 16px; margin-bottom: 24px;">
-        <img src="${album.coverUrl}" style="width: 120px; height: 120px; border-radius: 8px; object-fit: cover; border: 1px solid #f0f0f0;" />
-        <div style="flex: 1; display: flex; flex-direction: column; justify-content: center;">
-          <h2 style="font-size: 20px; font-weight: 700; margin: 0 0 4px 0; color: #141414;">${album.title}</h2>
-          <div style="font-size: 14px; color: #888; margin-bottom: 8px;">${album.artist}</div>
-          <div style="font-size: 12px; color: #888;">${album.releaseYear}</div>
-        </div>
+      <div class="pld-page">
+      <div class="pld-top-bar">
+        <button class="pld-back-btn" data-action="close-album">‹</button>
       </div>
-      ${tracksHtml}
-    </section> `;
+      <div class="pld-hero">
+        <div class="pld-hero-thumb" style="${album.coverUrl ? `background-image:url(${album.coverUrl}); background-size:cover;` : `background-color:#e0e0e0;`}"></div>
+        <div class="pld-hero-title">${album.title}</div>
+        <div class="pld-hero-sub">${album.artist} • ${album.releaseYear} • 수록곡 ${state.currentAlbumTracks.length}곡</div>
+        <button class="pld-play-all-btn" data-action="play-album-all">▶ 전체듣기</button>
+      </div>
+      <div class="pld-songs-sec">
+        <div class="pld-songs-head">
+          <div class="pld-songs-count">수록곡 <span>${state.currentAlbumTracks.length}곡</span></div>
+        </div>
+        <div class="pld-ctrl-row">
+          <div class="pld-ctrl-left">
+            <button class="pld-ctrl-btn" data-action="play-album-all">▶ 전체듣기</button>
+          </div>
+        </div>
+        ${tracksHtml}
+      </div>
+    </div> `;
 }
 
 function getCurrentPlaylist() {
@@ -1293,8 +1325,13 @@ function loginScreen() {
         </div>
         
         <div style="display: flex; justify-content: center; gap: 16px; margin-top: 48px;">
-          <button style="width: 50px; height: 50px; border-radius: 50%; background: #03c75a; border: none; padding: 0; display: flex; justify-content: center; align-items: center; cursor: pointer;">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M16 19.5H19.5V4.5H16L8 12.5V4.5H4.5V19.5H8L16 11.5V19.5Z" fill="white"/></svg>
+          <button style="width: 50px; height: 50px; border-radius: 50%; background: #fff; border: 1px solid #e0e0e0; padding: 0; display: flex; justify-content: center; align-items: center; cursor: pointer;">
+            <svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+              <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+              <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+              <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+            </svg>
           </button>
           <button style="width: 50px; height: 50px; border-radius: 50%; background: #fee500; border: none; padding: 0; display: flex; justify-content: center; align-items: center; cursor: pointer;">
             <svg width="26" height="26" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 4C6.5 4 2 7.6 2 12c0 2.5 1.4 4.8 3.6 6.3-.3 1.2-1 3.5-1 3.5s-.1.2 0 .2.2 0 .3-.1l4.2-2.8c.9.2 1.9.4 2.9.4 5.5 0 10-3.6 10-8s-4.5-8-10-8z" fill="#3c1e1e"/></svg>
@@ -1390,10 +1427,10 @@ function render() {
           </div>
         </div>
         `
-          : `<div class="dock">
+          : (state.sheet !== "save-to-playlist" ? `<div class="dock">
         ${miniPlayer()}
         <nav class="tabs">${tabs.map((tab) => `<button class="tab${state.tab === tab.id ? " is-on" : ""}" data-action="tab" data-tab="${tab.id}"><img src="${tab.icon}" width="24" height="24" alt="" />${tab.label}</button>`).join("")}</nav>
-      </div>`
+      </div>` : "")
       }
       ${sheet()}
       ${sortBottomSheet()}
@@ -1588,7 +1625,9 @@ function setupIntersectionObserver() {
 // --- 6. 이벤트 핸들러 ---
 function getSelectedTracksToSave() {
   if (state.selectedSearchIds && state.selectedSearchIds.length > 0) {
-    return state.searchResults.filter(t => state.selectedSearchIds.includes(t.id.toString()));
+    const searchTracks = state.searchResults.filter(t => state.selectedSearchIds.includes(t.id.toString()));
+    const albumTracks = (state.currentAlbumTracks || []).filter(t => state.selectedSearchIds.includes(t.id.toString()));
+    return [...searchTracks, ...albumTracks];
   } else if (state.selectedQueueIds && state.selectedQueueIds.length > 0) {
     return state.queueTracks.filter((t, i) => state.selectedQueueIds.includes((t.id || (i + 1)).toString()));
   } else if (state.selectedSongIds && state.selectedSongIds.length > 0) {
@@ -1893,7 +1932,9 @@ app.addEventListener("click", (event) => {
     return render();
   } else if (action === "search-play-selected" || action === "search-add-selected") {
     if (state.selectedSearchIds.length === 0) return;
-    const selectedTracks = state.searchResults.filter(t => state.selectedSearchIds.includes(t.id.toString()));
+    const searchTracks = state.searchResults.filter(t => state.selectedSearchIds.includes(t.id.toString()));
+    const albumTracks = (state.currentAlbumTracks || []).filter(t => state.selectedSearchIds.includes(t.id.toString()));
+    const selectedTracks = [...searchTracks, ...albumTracks];
     if (selectedTracks.length === 0) return;
 
     if (action === "search-play-selected") {
@@ -2408,6 +2449,35 @@ app.addEventListener("click", (event) => {
       });
     }
     return render();
+  } else if (action === "play-album-all") {
+    if (state.currentAlbumTracks && state.currentAlbumTracks.length > 0) {
+      const first = state.currentAlbumTracks[0];
+      state.nowPlaying = { title: first.title, artist: first.artist, color: "#2b3b4a", previewUrl: first.previewUrl, cover: first.coverUrl };
+      if (first.previewUrl) {
+        if (audioPlayer.src !== first.previewUrl) audioPlayer.src = first.previewUrl;
+        audioPlayer.play();
+      } else {
+        audioPlayer.pause();
+      }
+      state.paused = false;
+
+      // 전체 듣기 시 큐에 모두 추가
+      state.currentAlbumTracks.forEach(track => {
+        const newTrack = {
+          id: Date.now() + Math.random(),
+          title: track.title,
+          artist: track.artist,
+          cover: track.coverUrl,
+          previewUrl: track.previewUrl,
+          color: "#2b3b4a",
+          addedAt: Date.now()
+        };
+        const existingIdx = state.queueTracks.findIndex(t => t.title === newTrack.title && t.artist === newTrack.artist);
+        if (existingIdx > -1) state.queueTracks.splice(existingIdx, 1);
+        state.queueTracks.push(newTrack);
+      });
+    }
+    return render();
   } else if (action === "play-chart-all" || action === "listen-all") {
     if (tracks && tracks.length > 0) {
       const first = tracks[0];
@@ -2656,6 +2726,7 @@ app.addEventListener("click", (event) => {
       .then(data => {
         const songs = data.results.filter(r => r.wrapperType === 'track');
         state.currentAlbumTracks = songs.map(item => ({
+          id: item.trackId || (Date.now() + Math.random()),
           title: item.trackName || "제목 없음",
           artist: item.artistName || "알 수 없는 아티스트",
           coverUrl: item.artworkUrl100 ? item.artworkUrl100.replace("100x100bb", "300x300bb") : "https://via.placeholder.com/300?text=No+Cover",
