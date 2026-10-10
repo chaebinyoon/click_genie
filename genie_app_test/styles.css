@@ -1388,6 +1388,7 @@ button {
 
 /* 하단 파란색 액션 툴바 */
 .pld-edit-toolbar-wrap {
+  position: relative;
   flex: none;
   background: #0096fd;
   z-index: 25;

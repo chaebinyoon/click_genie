@@ -1423,7 +1423,7 @@ function render() {
             <button class="pld-tool-btn" data-action="search-add-selected" style="color:#fff;"><span class="icon"><svg width=\'1em\' height=\'1em\' viewBox=\'0 0 24 24\' fill=\'currentColor\' xmlns=\'http://www.w3.org/2000/svg\'><path d=\'M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z\'/></svg></span><span>추가</span></button>
             <button class="pld-tool-btn" data-action="search-save-selected" style="color:#fff;"><span class="icon"><svg width=\'1em\' height=\'1em\' viewBox=\'0 0 24 24\' fill=\'currentColor\' xmlns=\'http://www.w3.org/2000/svg\'><path d=\'M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z\'/></svg></span><span>담기</span></button>
             <button class="pld-tool-btn" style="color:#fff;"><span class="icon"><svg width=\'1em\' height=\'1em\' viewBox=\'0 0 24 24\' fill=\'currentColor\' xmlns=\'http://www.w3.org/2000/svg\'><path d=\'M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z\'/></svg></span><span>다운</span></button>
-            <button class="pld-tool-btn" style="color:#fff;"><span class="icon"><svg width=\'1em\' height=\'1em\' viewBox=\'0 0 24 24\' fill=\'currentColor\' xmlns=\'http://www.w3.org/2000/svg\'><path d=\'M9 15h4v6h2v-6h4l-7-7-7 7zM5 3v2h14V3H5z\'/></svg></span><span>공유</span></button>
+            <button class="pld-tool-btn" data-action="share-selected" style="color:#fff;"><span class="icon"><svg width=\'1em\' height=\'1em\' viewBox=\'0 0 24 24\' fill=\'currentColor\' xmlns=\'http://www.w3.org/2000/svg\'><path d=\'M9 15h4v6h2v-6h4l-7-7-7 7zM5 3v2h14V3H5z\'/></svg></span><span>공유</span></button>
             <button class="pld-tool-btn" data-action="search-clear-selected" style="color:#fff;"><span class="icon"><svg width=\'1em\' height=\'1em\' viewBox=\'0 0 24 24\' fill=\'currentColor\' xmlns=\'http://www.w3.org/2000/svg\'><path d=\'M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z\'/></svg></span><span>선택취소</span></button>
           </div>
         </div>
@@ -1970,6 +1970,27 @@ app.addEventListener("click", (event) => {
   } else if (action === "search-save-selected") {
     state.sheet = "save-to-playlist";
     return render();
+  } else if (action === "share-selected") {
+    if (navigator.share) {
+      const selectedTracks = getSelectedTracksToSave();
+      let text = "지니뮤직에서 곡을 공유합니다.";
+      if (selectedTracks && selectedTracks.length > 0) {
+        text = selectedTracks.map(t => `${t.title} - ${t.artist}`).join("\\n");
+      }
+      navigator.share({
+        title: "지니뮤직",
+        text: text,
+        url: window.location.href,
+      })
+      .then(() => {
+        state.toastMessage = "공유가 완료되었습니다.";
+        render();
+      })
+      .catch((error) => console.log("공유 에러", error));
+    } else {
+      alert("현재 환경에서는 네이티브 공유하기 기능을 지원하지 않습니다.");
+    }
+    return;
   } else if (action === "search-save-create-new") {
     state.promptType = "search-save-create-new";
     return render();
