@@ -146,7 +146,7 @@ audioPlayer.addEventListener("timeupdate", () => {
 
 // --- 3. Last.fm 연동 안내 ---
 // Last.fm은 CORS 문제가 없고 유료 플랜이 요구되지 않습니다.// --- 4. 통합 검색 API 통신 함수 ---
-async function performSearch(keyword) {
+async function performSearch(keyword, isGenreMode = false) {
   const trimmed = keyword.trim();
   if (!trimmed) return;
   state.searchQuery = trimmed;
@@ -166,47 +166,50 @@ async function performSearch(keyword) {
 
   try {
     let lastfmPromise = Promise.resolve(null);
-    if (LAST_FM_API_KEY && !LAST_FM_API_KEY.includes("여기에")) {
-      const lastfmUrl = `https://ws.audioscrobbler.com/2.0/?method=artist.getinfo&artist=${encodeURIComponent(keyword)}&api_key=${LAST_FM_API_KEY}&format=json`;
-      lastfmPromise = fetch(lastfmUrl)
-        .then(res => res.json())
-        .then(data => data.artist)
-        .catch(err => {
-          console.error("Last.fm 검색 실패:", err);
-          return null;
-        });
-    }
+    let albumPromise = Promise.resolve(null);
 
-    const albumUrl = `https://itunes.apple.com/search?term=${encodeURIComponent(keyword)}&entity=album&country=US&limit=200`;
-    const albumPromise = fetch(albumUrl).then((res) => res.json()).catch(() => null);
+    if (!isGenreMode) {
+      if (LAST_FM_API_KEY && !LAST_FM_API_KEY.includes("여기에")) {
+        const lastfmUrl = `https://ws.audioscrobbler.com/2.0/?method=artist.getinfo&artist=${encodeURIComponent(keyword)}&api_key=${LAST_FM_API_KEY}&format=json`;
+        lastfmPromise = fetch(lastfmUrl)
+          .then(res => res.json())
+          .then(data => data.artist)
+          .catch(err => {
+            console.error("Last.fm 검색 실패:", err);
+            return null;
+          });
+      }
+      const albumUrl = `https://itunes.apple.com/search?term=${encodeURIComponent(keyword)}&entity=album&country=US&limit=200`;
+      albumPromise = fetch(albumUrl).then((res) => res.json()).catch(() => null);
+    }
 
     const trackUrl = `https://itunes.apple.com/search?term=${encodeURIComponent(keyword)}&entity=song&country=US&limit=200`;
     const trackPromise = fetch(trackUrl).then((res) => res.json()).catch(() => null);
 
     const [lastfmData, albumData, trackData] = await Promise.all([lastfmPromise, albumPromise, trackPromise]);
 
-    // Last.fm API는 현재 아티스트 이미지를 제공하지 않으므로 (회색 별 이미지 반환)
-    // iTunes 검색 결과에서 첫 번째 곡의 앨범 커버를 아티스트 이미지로 사용합니다.
-    let imageUrl = "https://via.placeholder.com/300?text=No+Photo";
-    if (trackData && trackData.results.length > 0) {
-      imageUrl = trackData.results[0].artworkUrl100 ? trackData.results[0].artworkUrl100.replace("100x100bb", "400x400bb") : imageUrl;
-    }
+    if (!isGenreMode) {
+      let imageUrl = "https://via.placeholder.com/300?text=No+Photo";
+      if (trackData && trackData.results.length > 0) {
+        imageUrl = trackData.results[0].artworkUrl100 ? trackData.results[0].artworkUrl100.replace("100x100bb", "400x400bb") : imageUrl;
+      }
 
-    if (lastfmData && lastfmData.name) {
-      const listeners = new Intl.NumberFormat("ko-KR").format(lastfmData.stats?.listeners || 0);
-      const tags = lastfmData.tags?.tag?.length > 0 ? lastfmData.tags.tag.slice(0, 3).map(t => t.name.toUpperCase()).join(", ") : "ARTIST";
-      state.artistProfile = {
-        name: lastfmData.name,
-        bio: `청취자 ${listeners}명 • ${tags}`,
-        imageUrl: imageUrl,
-      };
-    } else if (trackData && trackData.results.length > 0) {
-      const topHit = trackData.results[0];
-      state.artistProfile = {
-        name: topHit.artistName,
-        bio: "상단에 Last.fm API 키를 입력하면 정확한 청취자 수와 태그 정보가 표시됩니다.",
-        imageUrl: imageUrl,
-      };
+      if (lastfmData && lastfmData.name) {
+        const listeners = new Intl.NumberFormat("ko-KR").format(lastfmData.stats?.listeners || 0);
+        const tags = lastfmData.tags?.tag?.length > 0 ? lastfmData.tags.tag.slice(0, 3).map(t => t.name.toUpperCase()).join(", ") : "ARTIST";
+        state.artistProfile = {
+          name: lastfmData.name,
+          bio: `청취자 ${listeners}명 • ${tags}`,
+          imageUrl: imageUrl,
+        };
+      } else if (trackData && trackData.results.length > 0) {
+        const topHit = trackData.results[0];
+        state.artistProfile = {
+          name: topHit.artistName,
+          bio: "상단에 Last.fm API 키를 입력하면 정확한 청취자 수와 태그 정보가 표시됩니다.",
+          imageUrl: imageUrl,
+        };
+      }
     }
 
     if (albumData && albumData.results) {
@@ -556,7 +559,7 @@ function searchScreen() {
       <h3 style="font-size: 20px; font-weight: 800; margin: 0 0 16px 0; color: #141414;">장르 둘러보기</h3>
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
         ${genres.map(g => `
-          <div style="background: ${g.background}; border-radius: 8px; padding: 12px; aspect-ratio: 16/9; position: relative; overflow: hidden; cursor: pointer;">
+          <div data-action="search-genre" data-genre="${g.title}" style="background: ${g.background}; border-radius: 8px; padding: 12px; aspect-ratio: 16/9; position: relative; overflow: hidden; cursor: pointer;">
             <div style="font-size: 15px; font-weight: 800; color: #fff; position: relative; z-index: 1;">${g.title}</div>
             <div style="position: absolute; bottom: -15px; right: -15px; width: 60px; height: 60px; background: rgba(255,255,255,0.1); border-radius: 50%; filter: blur(10px);"></div>
             <div style="position: absolute; top: -20px; left: -20px; width: 80px; height: 80px; background: rgba(255,255,255,0.15); border-radius: 50%; filter: blur(20px);"></div>
@@ -1866,6 +1869,13 @@ app.addEventListener("click", (event) => {
     if (keyword) {
       document.getElementById("search-input").value = keyword;
       performSearch(keyword);
+    }
+    return;
+  } else if (action === "search-genre") {
+    const genre = target.dataset.genre;
+    if (genre) {
+      document.getElementById("search-input").value = genre;
+      performSearch(genre, true);
     }
     return;
   }
