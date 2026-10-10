@@ -444,7 +444,8 @@ button {
 }
 
 .more {
-  width: 366px;
+  width: calc(100% - 32px);
+  max-width: 366px;
   height: 44px;
   border-radius: 10px;
   background: #f6f6f6;
@@ -452,7 +453,10 @@ button {
   font-size: 15px;
   font-weight: 500;
   margin: 10px auto 0;
-  display: block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
 }
 
 .label-block {
