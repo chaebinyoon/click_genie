@@ -1086,15 +1086,15 @@ function queueScreen() {
           </div>
         </div>
       ` : `
-        <div class="queue-player">
+        <div class="queue-player" data-action="open-full-player" style="cursor: pointer;">
           <div class="queue-player-inner">
             <button class="queue-zap-btn" data-action="queue-zap" aria-label="빠른선곡"><img src="assets/queue_zap.svg" width="36" height="36" alt="zap" /></button>
             <div class="queue-player-ctrls">
-              <button class="queue-ctrl-btn" data-action="prev" aria-label="이전"><svg width=\'1em\' height=\'1em\' viewBox=\'0 0 24 24\' fill=\'currentColor\' xmlns=\'http://www.w3.org/2000/svg\'><path d=\'M6 6h2v12H6zm3.5 6l8.5 6V6z\'/></svg></button>
-              <button class="queue-ctrl-play" data-action="toggle" aria-label="${state.paused ? "재생" : "일시정지"}">${state.paused ? "<svg width=\'1em\' height=\'1em\' viewBox=\'0 0 24 24\' fill=\'currentColor\' xmlns=\'http://www.w3.org/2000/svg\'><path d=\'M8 5v14l11-7z\'/></svg>" : "<svg width=\'1em\' height=\'1em\' viewBox=\'0 0 24 24\' fill=\'currentColor\' xmlns=\'http://www.w3.org/2000/svg\'><path d=\'M6 19h4V5H6v14zm8-14v14h4V5h-4z\'/></svg>"}</button>
-              <button class="queue-ctrl-btn" data-action="next" aria-label="다음"><svg width=\'1em\' height=\'1em\' viewBox=\'0 0 24 24\' fill=\'currentColor\' xmlns=\'http://www.w3.org/2000/svg\'><path d=\'M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z\'/></svg></button>
+              <button class="queue-ctrl-btn" data-action="prev" aria-label="이전"><svg width='1em' height='1em' viewBox='0 0 24 24' fill='currentColor' xmlns='http://www.w3.org/2000/svg'><path d='M6 6h2v12H6zm3.5 6l8.5 6V6z'/></svg></button>
+              <button class="queue-ctrl-play" data-action="toggle" aria-label="${state.paused ? "재생" : "일시정지"}">${state.paused ? "<svg width='1em' height='1em' viewBox='0 0 24 24' fill='currentColor' xmlns='http://www.w3.org/2000/svg'><path d='M8 5v14l11-7z'/></svg>" : "<svg width='1em' height='1em' viewBox='0 0 24 24' fill='currentColor' xmlns='http://www.w3.org/2000/svg'><path d='M6 19h4V5H6v14zm8-14v14h4V5h-4z'/></svg>"}</button>
+              <button class="queue-ctrl-btn" data-action="next" aria-label="다음"><svg width='1em' height='1em' viewBox='0 0 24 24' fill='currentColor' xmlns='http://www.w3.org/2000/svg'><path d='M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z'/></svg></button>
             </div>
-            <div class="queue-player-thumb" data-action="open-full-player" style="cursor: pointer; ${current && current.cover ? `background-image:url(${current.cover}); background-size:cover;` : `background-color:${current && current.color ? current.color : '#8CC7BF'};`}"></div>
+            <div class="queue-player-thumb" style="${current && current.cover ? `background-image:url(${current.cover}); background-size:cover;` : `background-color:${current && current.color ? current.color : '#8CC7BF'};`}"></div>
           </div>
         </div>
       `}
@@ -1240,8 +1240,8 @@ function miniPlayer() {
     `;
   }
   return `
-      <div class="mini" >
-      <div class="now" data-action="open-full-player" style="cursor: pointer;"><strong>${track.title}</strong><span>${track.artist}</span></div>
+      <div class="mini" data-action="open-full-player" style="cursor: pointer;">
+      <div class="now"><strong>${track.title}</strong><span>${track.artist}</span></div>
       <div class="controls">
         <button data-action="prev" aria-label="이전"><svg width=\'1em\' height=\'1em\' viewBox=\'0 0 24 24\' fill=\'currentColor\' xmlns=\'http://www.w3.org/2000/svg\'><path d=\'M6 6h2v12H6zm3.5 6l8.5 6V6z\'/></svg></button>
         <button class="play" data-action="toggle" aria-label="${state.paused ? "재생" : "일시정지"}">${state.paused ? "<svg width=\'1em\' height=\'1em\' viewBox=\'0 0 24 24\' fill=\'currentColor\' xmlns=\'http://www.w3.org/2000/svg\'><path d=\'M8 5v14l11-7z\'/></svg>" : "<svg width=\'1em\' height=\'1em\' viewBox=\'0 0 24 24\' fill=\'currentColor\' xmlns=\'http://www.w3.org/2000/svg\'><path d=\'M6 19h4V5H6v14zm8-14v14h4V5h-4z\'/></svg>"}</button>

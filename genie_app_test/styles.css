@@ -606,7 +606,6 @@ button {
 .controls {
   display: flex;
   align-items: center;
-  gap: 18px;
   flex: none;
 }
 
@@ -614,6 +613,7 @@ button {
   color: #262626;
   font-size: 16px;
   line-height: 1;
+  padding: 15px 12px; /* Extra large click area */
 }
 
 .controls .play {
@@ -623,6 +623,8 @@ button {
 
 .controls .queue {
   color: #666;
+  padding: 15px 20px; /* Massive click area for queue button */
+  margin-right: -10px; /* Compensate for extra padding so it aligns visually */
 }
 
 .tabs {
@@ -1779,14 +1781,15 @@ button {
 }
 
 .queue-zap-btn {
-  width: 36px;
-  height: 36px;
+  width: 48px;
+  height: 48px;
   display: grid;
   place-items: center;
   background: none;
   border: 0;
   cursor: pointer;
-  padding: 0;
+  padding: 6px;
+  margin-left: -6px;
 }
 
 .queue-player-ctrls {
