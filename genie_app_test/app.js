@@ -1094,7 +1094,7 @@ function queueScreen() {
               <button class="queue-ctrl-play" data-action="toggle" aria-label="${state.paused ? "재생" : "일시정지"}">${state.paused ? "<svg width=\'1em\' height=\'1em\' viewBox=\'0 0 24 24\' fill=\'currentColor\' xmlns=\'http://www.w3.org/2000/svg\'><path d=\'M8 5v14l11-7z\'/></svg>" : "<svg width=\'1em\' height=\'1em\' viewBox=\'0 0 24 24\' fill=\'currentColor\' xmlns=\'http://www.w3.org/2000/svg\'><path d=\'M6 19h4V5H6v14zm8-14v14h4V5h-4z\'/></svg>"}</button>
               <button class="queue-ctrl-btn" data-action="next" aria-label="다음"><svg width=\'1em\' height=\'1em\' viewBox=\'0 0 24 24\' fill=\'currentColor\' xmlns=\'http://www.w3.org/2000/svg\'><path d=\'M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z\'/></svg></button>
             </div>
-            <div class="queue-player-thumb" style="${current && current.cover ? `background-image:url(${current.cover}); background-size:cover;` : `background-color:${current && current.color ? current.color : '#8CC7BF'};`}"></div>
+            <div class="queue-player-thumb" data-action="open-full-player" style="cursor: pointer; ${current && current.cover ? `background-image:url(${current.cover}); background-size:cover;` : `background-color:${current && current.color ? current.color : '#8CC7BF'};`}"></div>
           </div>
         </div>
       `}
