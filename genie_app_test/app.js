@@ -16,10 +16,10 @@ const defaultPlaylistSongs = [];
 let myPlaylists = [];
 
 const tabs = [
-  { id: "home", label: "홈", icon: "assets/tab-home.svg" },
+  { id: "home", label: "홈", icon: "assets/tab-search.svg" },
   { id: "aidj", label: "AI DJ", icon: "assets/tab-aidj.svg" },
-  { id: "search", label: "검색", icon: "assets/tab-search.svg" },
-  { id: "library", label: "내음악", icon: "assets/tab-library.svg" },
+  { id: "search", label: "검색", icon: "assets/tab-library.svg" },
+  { id: "library", label: "내음악", icon: "assets/tab-aidj.svg" },
   { id: "menu", label: "전체메뉴", icon: "assets/tab-menu.svg" },
 ];
 
@@ -464,7 +464,7 @@ function homeScreen() {
     </div>
     <section class="section">
       <div class="section-head">
-        <button data-action="chart"><h2>지니차트 <span>TOP 200</span> &gt;</h2></button>
+        <button data-action="chart"><h2>지니차트 &gt;</h2></button>
       </div>
       <div class="track-list">${visibleTracks().map(trackButton).join("")}</div>
       ${state.expanded ? "" : `<button class="more" data-action="play-chart-all">▶ 전체재생</button>`}
@@ -533,7 +533,13 @@ function searchScreen() {
 
   return `
       <section class="page" style="padding-bottom: 100px;" >
-      <h1>검색</h1>
+      <div class="lib-header">
+        <h1>검색</h1>
+        <div class="lib-header-right">
+          <button class="lib-pass-btn" data-action="pass">이용권</button>
+          <button class="avatar" data-action="profile" style="width:32px;height:32px;border-radius:50%;padding:0;background:none;border:none;cursor:pointer;"><img src="assets/frame_14.png" width="32" height="32" alt="프로필" style="border-radius:50%;" /></button>
+        </div>
+      </div>
       <div style="display: flex; gap: 8px; margin-bottom: 24px;">
         <input type="text" id="search-input" value="${state.searchQuery}" placeholder="가수 검색 (예: 실리카겔, NewJeans)" 
                style="flex: 1; height: 44px; padding: 0 16px; border-radius: 12px; border: none; background: #f0f0f0; font-size: 15px; outline: none;" />
@@ -1080,7 +1086,16 @@ function libraryScreen() {
 
 function tabScreen() {
   const rows = tabCopy[state.tab] || [];
-  return `<section class="page" ><h1>${tabs.find((tab) => tab.id === state.tab).label}</h1><div class="empty-list">${rows.map((row) => `<div class="row">${row}</div>`).join("")}</div></section> `;
+  return `<section class="page" >
+    <div class="lib-header">
+      <h1>${tabs.find((tab) => tab.id === state.tab).label}</h1>
+      <div class="lib-header-right">
+        <button class="lib-pass-btn" data-action="pass">이용권</button>
+        <button class="avatar" data-action="profile" style="width:32px;height:32px;border-radius:50%;padding:0;background:none;border:none;cursor:pointer;"><img src="assets/frame_14.png" width="32" height="32" alt="프로필" style="border-radius:50%;" /></button>
+      </div>
+    </div>
+    <div class="empty-list">${rows.map((row) => `<div class="row">${row}</div>`).join("")}</div>
+  </section> `;
 }
 
 function sheet() {
@@ -1218,7 +1233,7 @@ function render() {
       </div>
     `;
   } else {
-    const showGlobalHeader = state.tab !== "library";
+    const showGlobalHeader = state.tab === "home";
     const showChips = state.tab === "home" && state.screen === "home";
     const isEditing = state.tab === "library" && state.libraryView === "edit" && state.sheet !== "save-to-playlist";
     const isSearchEditing = state.tab === "search" && state.selectedSearchIds && state.selectedSearchIds.length > 0 && state.sheet !== "save-to-playlist";
@@ -1233,7 +1248,7 @@ function render() {
     else body = tabScreen();
 
     app.innerHTML = `
-        ${showGlobalHeader ? `<header class="header">${state.tab === "home" ? `<button class="logo" data-action="logo" aria-label="지니 홈"><img src="assets/image_1.png" alt="genie" /></button>` : `<div style="flex:1;"></div>`}<div class="header-right"><button class="avatar" data-action="profile"><img src="assets/frame_14.png" width="32" height="32" alt="프로필" /></button><button class="pass" data-action="pass">이용권</button></div></header>` : ""}
+        ${showGlobalHeader ? `<header class="header">${state.tab === "home" ? `<button class="logo" data-action="logo" aria-label="지니 홈"><img src="assets/logo.png" alt="genie" /></button>` : `<div style="flex:1;"></div>`}<div class="header-right"><button class="pass" data-action="pass">이용권</button><button class="avatar" data-action="profile" style="padding:0;background:none;border:none;cursor:pointer;"><img src="assets/frame_14.png" width="32" height="32" alt="프로필" style="border-radius:50%;" /></button></div></header>` : ""}
       ${showChips ? `<nav class="chips"><div class="chip-row">${state.chips.map((c) => `<button class="chip${c === state.chip ? " is-on" : ""}" data-action="chip" data-chip="${c}">${c}</button>`).join("")}</div></nav>` : ""}
     <main class="main" ${isSearchEditing ? 'style="padding-bottom: 70px;"' : ""}>${body}</main>
       ${isEditing
