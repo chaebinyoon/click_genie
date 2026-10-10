@@ -757,7 +757,11 @@ function libraryMainScreen() {
 function playlistDetailScreen() {
   const pl = getCurrentPlaylist();
   if (!pl) return `<div class="pld-container"><button class="pld-back" data-action="lib-back">←</button><div style="text-align:center; padding-top:100px; color:#888;">플레이리스트가 없습니다.</div></div>`;
-  const sortedTracks = getSortedTracks(pl.tracks, state.sortOrder);
+  let sortedTracks = getSortedTracks(pl.tracks, state.sortOrder);
+  const q = (state.playlistSearchQuery || "").trim().toLowerCase();
+  if (q) {
+    sortedTracks = sortedTracks.filter((t) => t.title.toLowerCase().includes(q) || t.artist.toLowerCase().includes(q));
+  }
 
   // [요구사항 1] Pagination 기법 적용 (DOM 폭주 방지)
   const visibleTracks = sortedTracks.slice(0, state.pldVisibleCount);
@@ -800,9 +804,10 @@ function playlistDetailScreen() {
             <button data-action="add-song-to-pl">+ 곡추가</button>
           </div>
         </div>
-        <div class="pld-search-bar" data-action="open-playlist-search">
+        <div class="pld-search-bar" style="display:flex; align-items:center;">
           <span class="search-icon">🔍</span>
-          <input type="text" placeholder="이 리스트에서 찾기" readonly />
+          <input type="text" id="pld-search-input" value="${state.playlistSearchQuery || ""}" placeholder="이 리스트에서 찾기" style="flex:1; border:none; background:none; outline:none; font-size:15px; margin-left:8px;" />
+          ${state.playlistSearchQuery ? '<button class="pld-search-clear" data-action="clear-pld-search">✕</button>' : ""}
         </div>
         <div class="pld-ctrl-row">
           <div class="pld-ctrl-left">
@@ -832,6 +837,7 @@ function sortBottomSheet() {
     { id: "title", label: "곡 제목 순" },
     { id: "recent", label: "최근 추가순" },
   ];
+  const currentSortOrder = state.sortTarget === "queue" ? state.queueSortOrder : state.sortOrder;
 
   return `
       <div class="sort-sheet-back" data-action="close-sort-sheet" >
@@ -839,9 +845,9 @@ function sortBottomSheet() {
           <div class="sort-handle"></div>
           <div class="sort-opt-list">
             ${options.map((opt) => `
-            <div class="sort-opt-item${state.sortOrder === opt.id ? " is-selected" : ""}" data-action="select-sort-order" data-id="${opt.id}" data-label="${opt.label}">
+            <div class="sort-opt-item${currentSortOrder === opt.id ? " is-selected" : ""}" data-action="select-sort-order" data-id="${opt.id}" data-label="${opt.label}">
               <span>${opt.label}</span>
-              ${state.sortOrder === opt.id ? '<span class="sort-opt-check">↑</span>' : ""}
+              ${currentSortOrder === opt.id ? '<span class="sort-opt-check">↑</span>' : ""}
             </div>`).join("")}
           </div>
           <button class="sort-cancel-btn" data-action="close-sort-sheet">취소</button>
@@ -1069,14 +1075,14 @@ function queueScreen() {
       </div>
 
       ${state.queueEdit && state.sheet !== "save-to-playlist" ? `
-        <div class="pld-edit-toolbar-wrap">
-          ${selectedCount > 0 ? `<div class="pld-count-badge-floating">${selectedCount}</div>` : ""}
-          <div class="pld-edit-toolbar">
-            <button class="pld-tool-btn" data-action="queue-move-top"><span class="icon">↑</span><span>맨위로</span></button>
-            <button class="pld-tool-btn" data-action="queue-move-up"><span class="icon">⮵</span><span>위로</span></button>
-            <button class="pld-tool-btn" data-action="queue-move-down"><span class="icon">⮷</span><span>아래로</span></button>
-            <button class="pld-tool-btn" data-action="queue-delete"><span class="icon">🗑</span><span>삭제</span></button>
-            <button class="pld-tool-btn" data-action="queue-add-to"><span class="icon">＋</span><span>담기</span></button>
+        <div class="pld-edit-toolbar-wrap" style="background:#0096fd;">
+          ${selectedCount > 0 ? `<div class="pld-count-badge-floating" style="background:#0096fd; color:#fff; border: 2px solid #fff;">${selectedCount}</div>` : ""}
+          <div class="pld-edit-toolbar" style="background:#0096fd; border: none; padding-top: 10px;">
+            <button class="pld-tool-btn" data-action="queue-play-selected" style="color:#fff;"><img src="assets/queue_play.png" width="24" height="24" style="margin-bottom: 4px;" alt="선택듣기"/><span style="font-size: 11px;">선택듣기</span></button>
+            <button class="pld-tool-btn" data-action="queue-add-to" style="color:#fff;"><img src="assets/queue_add.png" width="24" height="24" style="margin-bottom: 4px;" alt="추가/담기"/><span style="font-size: 11px;">추가/담기</span></button>
+            <button class="pld-tool-btn" data-action="queue-download" style="color:#fff;"><img src="assets/queue_download.png" width="24" height="24" style="margin-bottom: 4px;" alt="다운"/><span style="font-size: 11px;">다운</span></button>
+            <button class="pld-tool-btn" data-action="queue-delete" style="color:#fff;"><img src="assets/queue_delete.png" width="24" height="24" style="margin-bottom: 4px;" alt="삭제"/><span style="font-size: 11px;">삭제</span></button>
+            <button class="pld-tool-btn" data-action="queue-clear-selected" style="color:#fff;"><img src="assets/queue_cancel.png" width="24" height="24" style="margin-bottom: 4px;" alt="선택취소"/><span style="font-size: 11px;">선택취소</span></button>
           </div>
         </div>
       ` : `
@@ -2259,42 +2265,14 @@ app.addEventListener("click", (event) => {
       state.selectedQueueIds = listTracks.map((t, i) => (t.id || (i + 1)).toString());
     }
     return render();
-  } else if (action === "queue-move-top") {
-    if (state.selectedQueueIds.length > 0) {
-      const selected = state.queueTracks.filter((t, i) => state.selectedQueueIds.includes((t.id || (i + 1)).toString()));
-      const remaining = state.queueTracks.filter((t, i) => !state.selectedQueueIds.includes((t.id || (i + 1)).toString()));
-      state.queueTracks = [...selected, ...remaining];
-    }
-    return render();
-  } else if (action === "queue-move-up") {
-    if (state.selectedQueueIds.length > 0) {
-      for (let i = 1; i < state.queueTracks.length; i++) {
-        const trackId = (state.queueTracks[i].id || (i + 1)).toString();
-        if (state.selectedQueueIds.includes(trackId)) {
-          const prevId = (state.queueTracks[i - 1].id || i).toString();
-          if (!state.selectedQueueIds.includes(prevId)) {
-            const temp = state.queueTracks[i];
-            state.queueTracks[i] = state.queueTracks[i - 1];
-            state.queueTracks[i - 1] = temp;
-          }
-        }
-      }
-    }
-    return render();
-  } else if (action === "queue-move-down") {
-    if (state.selectedQueueIds.length > 0) {
-      for (let i = state.queueTracks.length - 2; i >= 0; i--) {
-        const trackId = (state.queueTracks[i].id || (i + 1)).toString();
-        if (state.selectedQueueIds.includes(trackId)) {
-          const nextId = (state.queueTracks[i + 1].id || (i + 2)).toString();
-          if (!state.selectedQueueIds.includes(nextId)) {
-            const temp = state.queueTracks[i];
-            state.queueTracks[i] = state.queueTracks[i + 1];
-            state.queueTracks[i + 1] = temp;
-          }
-        }
-      }
-    }
+  } else if (action === "queue-play-selected") {
+    if (state.selectedQueueIds.length === 0) return alert("선택된 곡이 없습니다.");
+    alert("아직 준비중인 기능입니다.");
+  } else if (action === "queue-download") {
+    if (state.selectedQueueIds.length === 0) return alert("선택된 곡이 없습니다.");
+    alert("아직 준비중인 기능입니다.");
+  } else if (action === "queue-clear-selected") {
+    state.selectedQueueIds = [];
     return render();
   } else if (action === "queue-delete") {
     if (state.selectedQueueIds.length > 0) {
@@ -2307,13 +2285,8 @@ app.addEventListener("click", (event) => {
     state.sheet = "save-to-playlist";
     return render();
   } else if (action === "queue-zap") {
-    const randomIdx = Math.floor(Math.random() * state.queueTracks.length);
-    const song = state.queueTracks[randomIdx];
-    if (song) {
-      state.nowPlaying = { title: song.title, artist: song.artist, color: song.color, cover: song.cover };
-      state.paused = false;
-    }
-    return render();
+    alert("이용권 사용자에게만 제공되는 기능입니다.");
+    return;
   }
 
   // --- 내음악 & 플레이리스트 액션 ---
@@ -2363,7 +2336,8 @@ app.addEventListener("click", (event) => {
     state.playlistSearchQuery = "";
   } else if (action === "clear-pld-search") {
     state.playlistSearchQuery = "";
-    state.pldSearchVisibleCount = 30;
+    state.pldVisibleCount = 30;
+    return render();
   } else if (action === "open-edit-mode") {
     state.libraryView = "edit";
     state.pldEditVisibleCount = 30;
@@ -2923,7 +2897,7 @@ app.addEventListener("input", (event) => {
 
   if (event.target.id === "pld-search-input") {
     state.playlistSearchQuery = event.target.value;
-    state.pldSearchVisibleCount = 30; // 데이터 갱신 시 카운트 리셋
+    state.pldVisibleCount = 30; // 데이터 갱신 시 카운트 리셋
 
     // 이전에는 DOM을 직접 수정했지만, 안정성을 위해 render를 사용하고 포커스를 되찾는 방식으로 통합했습니다.
     render();
