@@ -742,10 +742,6 @@ function libraryMainScreen() {
       </div>
       <div class="lib-meta-row">
         <span class="lib-count-badge">전체 <span>${myPlaylists.length}</span></span>
-        <div class="lib-filter-controls">
-          <button class="lib-sort-btn" data-action="open-sort-sheet">${state.sortOrderLabel} ∨</button>
-          <button class="lib-edit-btn" data-action="open-edit-mode" style="margin-left: 8px;">편집</button>
-        </div>
       </div>
       <div class="lib-actions-row">
         <button class="lib-action-btn" data-action="new-playlist">+ 새로 만들기</button>
@@ -841,7 +837,6 @@ function sortBottomSheet() {
       <div class="sort-sheet-back" data-action="close-sort-sheet" >
         <div class="sort-sheet" data-stop>
           <div class="sort-handle"></div>
-          <div class="sort-sheet-title">정렬 순</div>
           <div class="sort-opt-list">
             ${options.map((opt) => `
             <div class="sort-opt-item${state.sortOrder === opt.id ? " is-selected" : ""}" data-action="select-sort-order" data-id="${opt.id}" data-label="${opt.label}">
@@ -1404,14 +1399,14 @@ function render() {
     <main class="main" ${isSearchEditing ? 'style="padding-bottom: 70px;"' : ""}>${body}</main>
       ${isEditing
         ? `
-        <div class="pld-edit-toolbar-wrap">
-          ${selectedCount > 0 ? `<div class="pld-count-badge-floating">${selectedCount}</div>` : ""}
-          <div class="pld-edit-toolbar">
-            <button class="pld-tool-btn" data-action="edit-move-top"><span class="icon">↑</span><span>맨위로</span></button>
-            <button class="pld-tool-btn" data-action="edit-move-up"><span class="icon">⮵</span><span>위로</span></button>
-            <button class="pld-tool-btn" data-action="edit-move-down"><span class="icon">⮷</span><span>아래로</span></button>
-            <button class="pld-tool-btn" data-action="edit-delete"><span class="icon">🗑</span><span>삭제</span></button>
-            <button class="pld-tool-btn" data-action="edit-add-to"><span class="icon">＋</span><span>담기</span></button>
+        <div class="pld-edit-toolbar-wrap" style="background:#0096fd;">
+          ${selectedCount > 0 ? `<div class="pld-count-badge-floating" style="background:#0096fd; color:#fff; border: 2px solid #fff;">${selectedCount}</div>` : ""}
+          <div class="pld-edit-toolbar" style="background:#0096fd; border: none; padding-top: 10px;">
+            <button class="pld-tool-btn" data-action="edit-move-up" style="color:#fff;"><img src="assets/edit_up.svg" width="24" height="24" style="margin-bottom: 4px;" alt="위로"/><span style="font-size: 11px;">위로</span></button>
+            <button class="pld-tool-btn" data-action="edit-move-top" style="color:#fff;"><img src="assets/edit_top.svg" width="24" height="24" style="margin-bottom: 4px;" alt="맨위로"/><span style="font-size: 11px;">맨위로</span></button>
+            <button class="pld-tool-btn" data-action="edit-move-bottom" style="color:#fff;"><img src="assets/edit_bottom.svg" width="24" height="24" style="margin-bottom: 4px;" alt="맨아래로"/><span style="font-size: 11px;">맨아래로</span></button>
+            <button class="pld-tool-btn" data-action="edit-delete" style="color:#fff;"><img src="assets/edit_delete.png" width="24" height="24" style="margin-bottom: 4px;" alt="삭제"/><span style="font-size: 11px;">삭제</span></button>
+            <button class="pld-tool-btn" data-action="edit-clear-selected" style="color:#fff;"><img src="assets/edit_cancel.png" width="24" height="24" style="margin-bottom: 4px;" alt="선택취소"/><span style="font-size: 11px;">선택취소</span></button>
           </div>
         </div>`
         : isSearchEditing ? `
@@ -2592,7 +2587,7 @@ app.addEventListener("click", (event) => {
       return render();
     }
   } else if (action === "smart-add-songs") {
-    alert("AI 취향 기반 다이나믹 곡 추가가 활성화되었습니다!");
+    alert("아직 준비중인 기능입니다.");
   } else if (action === "edit-move-top") {
     const pl = getCurrentPlaylist();
     if (state.selectedSongIds.length === 0) return alert("이동할 곡을 선택해주세요.");
@@ -2621,6 +2616,13 @@ app.addEventListener("click", (event) => {
         pl.tracks[i + 1] = temp;
       }
     }
+    return render();
+  } else if (action === "edit-move-bottom") {
+    const pl = getCurrentPlaylist();
+    if (state.selectedSongIds.length === 0) return alert("이동할 곡을 선택해주세요.");
+    const selected = pl.tracks.filter((t) => state.selectedSongIds.includes(t.id));
+    const unselected = pl.tracks.filter((t) => !state.selectedSongIds.includes(t.id));
+    pl.tracks = [...unselected, ...selected];
     return render();
   } else if (action === "add-song-to-pl") {
     state.libraryView = "add-song";
@@ -2699,6 +2701,9 @@ app.addEventListener("click", (event) => {
       pl.sub = `총 ${pl.tracks.length} 곡`;
       state.selectedSongIds = [];
     }
+    return render();
+  } else if (action === "edit-clear-selected") {
+    state.selectedSongIds = [];
     return render();
   } else if (action === "edit-add-to") {
     if (state.selectedSongIds.length === 0) return alert("담을 곡을 선택해주세요.");
