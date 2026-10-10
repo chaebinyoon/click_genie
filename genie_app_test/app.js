@@ -59,6 +59,7 @@ const state = {
   searchOffset: 0,
   searchHasMore: false,
   isLoadingMoreSearch: false,
+  recentSearches: [],
   nowPlaying: null,
   showFullPlayer: false,
 
@@ -146,8 +147,10 @@ audioPlayer.addEventListener("timeupdate", () => {
 // --- 3. Last.fm 연동 안내 ---
 // Last.fm은 CORS 문제가 없고 유료 플랜이 요구되지 않습니다.// --- 4. 통합 검색 API 통신 함수 ---
 async function performSearch(keyword) {
-  if (!keyword.trim()) return;
-  state.searchQuery = keyword;
+  const trimmed = keyword.trim();
+  if (!trimmed) return;
+  state.searchQuery = trimmed;
+  state.recentSearches = [trimmed, ...state.recentSearches.filter(s => s !== trimmed)].slice(0, 10);
   state.isSearching = true;
   state.searchResults = [];
   state.searchAllResults = [];
@@ -421,7 +424,7 @@ function searchTrackButton(track, index) {
   return `
       <div class="track" style="padding-left: 10px; background-color: ${highlightColor}; display: flex; align-items: center; width: 100%; border: none; cursor: pointer; padding-bottom: 8px; box-sizing: border-box;" >
         <div data-action="toggle-search-select" data-id="${track.id}" style="display: flex; align-items: center; flex: 1; min-width: 0;">
-          <img class="cover" src="${track.coverUrl}" alt="" style="object-fit: cover; width: 44px; height: 44px; border-radius: 4px; flex-shrink: 0;" />
+          ${track.coverUrl ? `<img class="cover" src="${track.coverUrl}" alt="" style="object-fit: cover; width: 44px; height: 44px; border-radius: 4px; flex-shrink: 0;" />` : `<div style="width: 44px; height: 44px; border-radius: 4px; flex-shrink: 0; background: #e0e0e0;"></div>`}
           <span class="meta" style="margin-left: 12px; display: flex; flex-direction: column; min-width: 0; flex: 1;">
             <strong style="color: ${titleColor}; font-size: 15px; font-weight: 500; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${track.title}</strong>
             <em style="color: ${isSelected ? '#0096fd' : '#888'}; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${track.artist}</em>
@@ -497,7 +500,7 @@ function searchScreen() {
          <p style="font-size: 13px; color: #1ed760; font-weight: 600; line-height: 1.5; margin: 0;">${state.artistProfile.bio}</p>
        </div> ` : "";
 
-  const albumObserverHtml = state.searchAlbumHasMore ? `<div id = "search-album-observer" style="flex: none; width: 20px;" ></div> ` : "";
+  const albumObserverHtml = state.searchAlbumHasMore ? `<div id="search-album-observer" style="flex: none; width: 20px;"></div> ` : "";
 
   const albumsHtml = state.searchAlbums.length > 0 && !state.isSearching
     ? `<div style="margin-bottom: 24px;" >
@@ -517,7 +520,58 @@ function searchScreen() {
     ? `<div style="padding: 20px 0; text-align: center; color: #888; font-size: 14px;" > 추가 데이터를 불러오는 중입니다...</div> `
     : "";
 
-  const observerHtml = state.searchHasMore && !state.isLoadingMoreSearch ? `<div id = "search-api-observer" style="height: 20px;" ></div> ` : "";
+  const observerHtml = state.searchHasMore && !state.isLoadingMoreSearch ? `<div id="search-api-observer" style="height: 20px;"></div> ` : "";
+
+  const recentSearchesHtml = state.recentSearches.length > 0 ? `
+    <div style="margin-bottom: 32px; margin-top: 16px;">
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+        <h3 style="font-size: 20px; font-weight: 800; margin: 0; color: #141414;">최근 검색</h3>
+        <button data-action="clear-recent-searches" style="background: none; border: none; padding: 0; color: #aaa; font-size: 13px; font-weight: 500; cursor: pointer;">전체삭제</button>
+      </div>
+      <div style="display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding-bottom: 4px;">
+        ${state.recentSearches.map(keyword => `
+          <div data-action="search-recent" data-keyword="${keyword}" style="border: 1px solid #e5e5e5; border-radius: 20px; padding: 6px 12px; font-size: 14px; color: #141414; display: flex; align-items: center; gap: 4px; white-space: nowrap; flex: none; cursor: pointer;">
+            ${keyword} <span data-action="delete-recent-search" data-keyword="${keyword}" style="color: #ccc; font-size: 12px; cursor: pointer; padding-left: 2px;">✕</span>
+          </div>
+        `).join("")}
+      </div>
+    </div>
+  ` : "";
+
+  const genres = [
+    { title: "가요", background: "linear-gradient(135deg, #0072ff 0%, #00c6ff 100%)" },
+    { title: "POP", background: "linear-gradient(135deg, #00f2fe 0%, #4facfe 100%)" },
+    { title: "OST", background: "linear-gradient(135deg, #430000 0%, #c40000 100%)" },
+    { title: "EDM", background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)" },
+    { title: "힙합", background: "linear-gradient(135deg, #1f1f1f 0%, #4a4a4a 100%)" },
+    { title: "트롯", background: "linear-gradient(135deg, #9a6600 0%, #f6d365 100%)" },
+    { title: "Jazz", background: "linear-gradient(135deg, #ff0844 0%, #ffb199 100%)" },
+    { title: "Classic", background: "linear-gradient(135deg, #2b1f00 0%, #855c0b 100%)" },
+    { title: "동요", background: "linear-gradient(135deg, #f6d365 0%, #fda085 100%)" },
+    { title: "태교음악", background: "linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%)" }
+  ];
+
+  const genresHtml = `
+    <div>
+      <h3 style="font-size: 20px; font-weight: 800; margin: 0 0 16px 0; color: #141414;">장르 둘러보기</h3>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+        ${genres.map(g => `
+          <div style="background: ${g.background}; border-radius: 8px; padding: 12px; aspect-ratio: 16/9; position: relative; overflow: hidden; cursor: pointer;">
+            <div style="font-size: 15px; font-weight: 800; color: #fff; position: relative; z-index: 1;">${g.title}</div>
+            <div style="position: absolute; bottom: -15px; right: -15px; width: 60px; height: 60px; background: rgba(255,255,255,0.1); border-radius: 50%; filter: blur(10px);"></div>
+            <div style="position: absolute; top: -20px; left: -20px; width: 80px; height: 80px; background: rgba(255,255,255,0.15); border-radius: 50%; filter: blur(20px);"></div>
+          </div>
+        `).join("")}
+      </div>
+    </div>
+  `;
+
+  const defaultSearchStateHtml = `
+    <div style="padding: 0 4px;">
+      ${recentSearchesHtml}
+      ${genresHtml}
+    </div>
+  `;
 
   const resultsHtml = state.isSearching
     ? `<div style="padding: 60px 0; text-align: center; color: #888; font-size: 14px;" > 데이터를 불러오는 중입니다...</div> `
@@ -529,7 +583,7 @@ function searchScreen() {
            ${observerHtml}
          </div> `
       : !state.artistProfile
-        ? `<div class="empty-list" > ${tabCopy.search.map((row) => `<div class="row">${row}</div>`).join("")}</div> ` : "";
+        ? defaultSearchStateHtml : "";
 
   return `
       <section class="page" style="padding-bottom: 100px;" >
@@ -540,10 +594,15 @@ function searchScreen() {
           <button class="avatar" data-action="profile" style="width:32px;height:32px;border-radius:50%;padding:0;background:none;border:none;cursor:pointer;"><img src="assets/frame_14.png" width="32" height="32" alt="프로필" style="border-radius:50%;" /></button>
         </div>
       </div>
-      <div style="display: flex; gap: 8px; margin-bottom: 24px;">
-        <input type="text" id="search-input" value="${state.searchQuery}" placeholder="가수 검색 (예: 실리카겔, NewJeans)" 
-               style="flex: 1; height: 44px; padding: 0 16px; border-radius: 12px; border: none; background: #f0f0f0; font-size: 15px; outline: none;" />
-        <button data-action="do-search" style="width: 64px; height: 44px; border-radius: 12px; background: #121212; color: #fff; font-weight: 600;">검색</button>
+      <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 24px;">
+        <input type="text" id="search-input" value="${state.searchQuery}" placeholder="검색어를 입력하세요." 
+               style="flex: 1; height: 44px; padding: 0 16px; border-radius: 4px; border: none; background: #f9f9f9; font-size: 15px; outline: none; color: #141414;" />
+        <button style="background: none; border: none; padding: 0; cursor: pointer; display: flex; align-items: center; color: #141414;">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="22"></line></svg>
+        </button>
+        <button style="background: none; border: none; padding: 0; cursor: pointer; display: flex; align-items: center; color: #141414;">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>
+        </button>
       </div>
       ${profileHtml}
       ${albumsHtml}
@@ -556,7 +615,7 @@ function albumTrackButton(track, index) {
   const highlightColor = isPlayingNow ? "#f7f7f7" : "transparent";
   return `
       <button class="track" data-action="play-album-track" data-index="${index}" style="padding-left: 10px; background-color: ${highlightColor};" >
-      <img class="cover" src="${track.coverUrl}" alt="" style="object-fit: cover;" />
+      ${track.coverUrl ? `<img class="cover" src="${track.coverUrl}" alt="" style="object-fit: cover;" />` : `<div class="cover" style="background: #e0e0e0;"></div>`}
       <span class="meta" style="margin-left: 12px;"><strong>${track.title}</strong><em>${track.artist}</em></span>
       ${track.previewUrl
       ? (isPlayingNow && !state.paused ? '<span style="margin-left:auto; font-size:16px; color:#141414; padding-right:10px;">❚❚</span>' : '<span style="margin-left:auto; font-size:16px; color:#141414; padding-right:10px;">▶</span>')
@@ -1172,7 +1231,7 @@ function fullPlayerScreen() {
       </div>
       
       <div style="flex: 1; display: flex; align-items: center; justify-content: center; padding: 20px;">
-        <img src="${cover}" style="width: 100%; max-width: 320px; aspect-ratio: 1; border-radius: 8px; object-fit: cover; box-shadow: 0 10px 30px rgba(0,0,0,0.5);" />
+        ${cover ? `<img src="${cover}" style="width: 100%; max-width: 320px; aspect-ratio: 1; border-radius: 8px; object-fit: cover; box-shadow: 0 10px 30px rgba(0,0,0,0.5);" />` : `<div style="width: 100%; max-width: 320px; aspect-ratio: 1; border-radius: 8px; background: #444; box-shadow: 0 10px 30px rgba(0,0,0,0.5);"></div>`}
       </div>
       
       <div style="padding: 0 24px 40px;">
@@ -1603,7 +1662,7 @@ function audioScreen() {
       ${episodes.map(ep => `
         <div data-action="audio-detail" data-id="${ep.trackId}" data-type="${type}" style="flex: none; width: 140px; cursor: pointer;">
           <div style="width: 140px; height: 140px; border-radius: 8px; overflow: hidden; margin-bottom: 8px; position: relative;">
-            <img src="${ep.artworkUrl600}" style="width: 100%; height: 100%; object-fit: cover;" />
+            ${ep.artworkUrl600 ? `<img src="${ep.artworkUrl600}" style="width: 100%; height: 100%; object-fit: cover;" />` : `<div style="width: 100%; height: 100%; background: #e0e0e0;"></div>`}
             <div style="position: absolute; bottom: 8px; right: 8px; width: 28px; height: 28px; background: rgba(0,0,0,0.5); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 12px;">▶</div>
           </div>
           <div style="font-size: 14px; font-weight: 600; color: #141414; line-height: 1.3; margin-bottom: 4px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${ep.trackName}</div>
@@ -1795,6 +1854,20 @@ app.addEventListener("click", (event) => {
   } else if (action === "close-login") {
     state.showLogin = false;
     return render();
+  } else if (action === "clear-recent-searches") {
+    state.recentSearches = [];
+    return render();
+  } else if (action === "delete-recent-search") {
+    const keyword = target.dataset.keyword;
+    state.recentSearches = state.recentSearches.filter(k => k !== keyword);
+    return render();
+  } else if (action === "search-recent") {
+    const keyword = target.dataset.keyword;
+    if (keyword) {
+      document.getElementById("search-input").value = keyword;
+      performSearch(keyword);
+    }
+    return;
   }
 
   if (action === "toggle-search-select") {
@@ -1886,6 +1959,20 @@ app.addEventListener("click", (event) => {
     state.chip = "홈";
     if (state.tab !== "library") {
       state.libraryView = "main";
+    }
+    if (state.tab === "search") {
+      state.searchQuery = "";
+      state.isSearching = false;
+      state.searchResults = [];
+      state.searchAllResults = [];
+      state.searchAlbums = [];
+      state.searchAllAlbums = [];
+      state.searchAlbumHasMore = false;
+      state.artistProfile = null;
+      state.searchOffset = 0;
+      state.searchHasMore = false;
+      state.isLoadingMoreSearch = false;
+      state.selectedSearchIds = [];
     }
   } else if (action === "play") {
     play(Number(target.dataset.index));
