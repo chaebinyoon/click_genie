@@ -133,6 +133,7 @@ const state = {
   showFullPlayer: false,
   showPassPage: false,
   passFromHires: false,
+  passReturnQueue: false,
 
   // 오디오 상태
   externalTracks: [],
@@ -1431,7 +1432,7 @@ function getQueueTabTracks() {
   }
   if (state.queueTab === "fast") return [];
   if (state.queueTab === "external") return state.externalTracks || [];
-  if (state.queueTab === "hires") return tracks.slice(2, 7);
+  if (state.queueTab === "hires") return [];
   return state.queueTracks;
 }
 
@@ -1583,7 +1584,7 @@ function queueScreen() {
           : ""
       }
       ${
-        (state.queueTab === "my" && !state.queueMyPlaylistId) || state.queueTab === "fast"
+        (state.queueTab === "my" && !state.queueMyPlaylistId) || state.queueTab === "fast" || state.queueTab === "hires"
           ? ""
           : `
       <div class="queue-ctrl-row">
@@ -1624,7 +1625,9 @@ function queueScreen() {
         ${
           state.queueTab === "fast"
             ? `<p class="queue-pass-notice">이용권 사용자에게만 제공되는 기능입니다.</p>`
-            : queueSongListInner(listTracks)
+            : state.queueTab === "hires"
+              ? `<div class="queue-hires-gate"><button type="button" data-action="open-hires-from-queue">고음질 전용관 바로가기</button></div>`
+              : queueSongListInner(listTracks)
         }
       </div>
 
@@ -3018,6 +3021,7 @@ app.addEventListener("click", (event) => {
   } else if (action === "tab") {
     state.showPassPage = false;
     state.passFromHires = false;
+    state.passReturnQueue = false;
     state.tab = target.dataset.tab;
     state.screen = "home";
     state.chip = "홈";
@@ -3115,12 +3119,28 @@ app.addEventListener("click", (event) => {
     state.showLogin = false;
     state.showPassPage = true;
     state.passFromHires = false;
+    state.passReturnQueue = false;
     state.sheet = null;
     return render();
   } else if (action === "close-pass-page") {
     state.showPassPage = false;
     state.passFromHires = false;
+    if (state.passReturnQueue) {
+      state.passReturnQueue = false;
+      state.showQueue = true;
+      state.queueTab = "hires";
+      return render();
+    }
     if (state.chip === "고음질 전용관") state.chip = "홈";
+    return render();
+  } else if (action === "open-hires-from-queue") {
+    state.showQueue = false;
+    state.showAudio = false;
+    state.showLogin = false;
+    state.showPassPage = true;
+    state.passFromHires = true;
+    state.passReturnQueue = true;
+    state.sheet = null;
     return render();
   } else if (action === "buy-pass") {
     showToast("이용권 구매가 신청되었습니다.");
