@@ -62,6 +62,8 @@ const state = {
   recentSearches: [],
   nowPlaying: null,
   showFullPlayer: false,
+  showPassPage: false,
+  passFromHires: false,
 
   // 오디오 상태
   externalTracks: [],
@@ -463,13 +465,16 @@ function homeScreen() {
   const magazineCards = labels.map((c, i) => renderCard(c, i, "magazine")).join("");
 
   return `
-      <div class="promo-section" >
-        <div class="promo-banner-wrap">
-          <img src="assets/promorow.png" alt="프로모션" class="promo-banner-img" />
-          <button class="promo-hotspot left" data-action="promo" data-id="fast" aria-label="고민없는 빠른선곡"></button>
-          <button class="promo-hotspot right" data-action="promo" data-id="time" aria-label="타임머신"></button>
+      <div class="promo-section">
+        <div class="home-promo-row">
+          <button type="button" class="home-promo-card" data-action="pass" aria-label="같은 음악, 다른 몰입">
+            <img src="assets/home-promo-flac.jpg" alt="같은 음악, 다른 몰입. 소리의 디테일과 공간감까지 FLAC 초고음질로 즐기는 지니뮤직" />
+          </button>
+          <button type="button" class="home-promo-card" data-action="pass" aria-label="깊고 선명한 사운드">
+            <img src="assets/home-promo-vinyl.jpg" alt="깊고 선명한 사운드" />
+          </button>
         </div>
-    </div>
+      </div>
     <section class="section">
       <div class="section-head">
         <button data-action="chart"><h2>지니차트 &gt;</h2></button>
@@ -1504,6 +1509,56 @@ function loginScreen() {
   `;
 }
 
+function passPageScreen() {
+  const ad = state.passFromHires
+    ? `<div class="hires-ad-scroller" id="hires-ad-scroller">
+        <img src="assets/hires/ad-flac.jpg" alt="소리의 디테일과 공간감까지 FLAC 초고음질로 즐기는 지니뮤직" />
+      </div>`
+    : "";
+
+  return `
+    <div class="hires-page">
+      <div class="hires-header">
+        <button class="hires-close" data-action="close-pass-page" aria-label="닫기"><img src="assets/hires/close.svg" alt="" width="28" height="28" /></button>
+        <h1>고음질 전용관</h1>
+        <span class="hires-header-spacer"></span>
+      </div>
+      <div class="hires-scroll">
+        ${ad}
+        <section class="hires-hero">
+          <div class="hires-badge">
+            <img src="assets/hires/badge.svg" alt="" width="81" height="81" />
+            <span>5G</span>
+          </div>
+          <p class="hires-kicker">초고음질 스트리밍을 즐길 수 있는</p>
+          <h2 class="hires-title">고음질 전용관</h2>
+          <p class="hires-lead">FLAC 16bit를 넘어 24bit 음질의 곡을<br />genie에서 스트리밍 해보세요!</p>
+        </section>
+        <section class="hires-block">
+          <img class="hires-wave" src="assets/hires/wave-2.svg" alt="" width="428" height="91" />
+          <p class="hires-muted">파일 용량을 줄이기 위해 인간이 인지하기<br />어려운 소리 정보를 제거하는 MP3와 달리</p>
+        </section>
+        <section class="hires-block">
+          <img class="hires-wave" src="assets/hires/wave-1.svg" alt="" width="428" height="87" />
+          <p class="hires-white">FLAC은 어떠한 삭제도 손실도 없는<br />생생하고 풍부한 프리미어 음원입니다.</p>
+        </section>
+        <section class="hires-block hires-bit">
+          <p class="hires-bit-label">보다 더, 원음에 가까이</p>
+          <p class="hires-bit-value">24bit</p>
+          <img class="hires-wave" src="assets/hires/wave-3.svg" alt="" width="466" height="87" />
+          <p class="hires-muted">보통 FLAC 16bit는 CD급 원음,<br />24bit는 스튜디오 원음으로 표현합니다.</p>
+          <p class="hires-white">24bit가 더 세밀하게 소리를 기록하여<br />원음에 가까운 최상의 음질을 제공합니다.</p>
+        </section>
+        <section class="hires-price">
+          <p class="hires-price-label">초고음질 스마트 음악감상</p>
+          <p class="hires-price-value">첫 달<br />100원</p>
+          <p class="hires-muted">1회차 혜택가, 2회차 정상가</p>
+        </section>
+        <button class="hires-buy" data-action="buy-pass" type="button">이용권 구매하기</button>
+      </div>
+    </div>`;
+}
+
 function render() {
   // [요구사항 1] 전체 DOM 갱신 시 스크롤 포지션 리셋 방지 로직
   const mainEl = document.querySelector(".main");
@@ -1529,6 +1584,14 @@ function render() {
       <div class="dock" style="z-index: 51;">
         ${miniPlayer()}
       </div>
+    `;
+  } else if (state.showPassPage) {
+    app.innerHTML = `${passPageScreen()}
+      <div class="dock" style="z-index: 51;">
+        ${miniPlayer()}
+        <nav class="tabs">${tabs.map((tab) => `<button class="tab${state.tab === tab.id ? " is-on" : ""}" data-action="tab" data-tab="${tab.id}"><img src="${tab.icon}" width="24" height="24" alt="" />${tab.label}</button>`).join("")}</nav>
+      </div>
+      ${typeof promptModal !== 'undefined' ? promptModal() : ''}
     `;
   } else if (state.showLogin) {
     app.innerHTML = loginScreen();
@@ -1625,6 +1688,38 @@ function render() {
   setupIntersectionObserver();
   setupFullPlayerSwipe();
   setupFullPlayerProgressDrag();
+  setupHiresAdTouch();
+}
+
+function setupHiresAdTouch() {
+  const scroller = document.getElementById("hires-ad-scroller");
+  if (!scroller) return;
+
+  let startX = 0;
+  let startY = 0;
+  let startLeft = 0;
+  let axis = null;
+
+  scroller.addEventListener("touchstart", (event) => {
+    if (event.touches.length !== 1) return;
+    startX = event.touches[0].clientX;
+    startY = event.touches[0].clientY;
+    startLeft = scroller.scrollLeft;
+    axis = null;
+  }, { passive: true });
+
+  scroller.addEventListener("touchmove", (event) => {
+    if (event.touches.length !== 1) return;
+    const dx = event.touches[0].clientX - startX;
+    const dy = event.touches[0].clientY - startY;
+    if (!axis) {
+      if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
+      axis = Math.abs(dx) > Math.abs(dy) ? "x" : "y";
+    }
+    if (axis !== "x") return;
+    event.preventDefault();
+    scroller.scrollLeft = startLeft - dx;
+  }, { passive: false });
 }
 
 function setupFullPlayerProgressDrag() {
@@ -2190,12 +2285,25 @@ app.addEventListener("click", (event) => {
     if (target.dataset.chip === "오디오") {
       state.showQueue = false;
       state.showAudio = true;
+      state.showPassPage = false;
       fetchAudioEpisodes();
+      return render();
+    }
+    if (target.dataset.chip === "고음질 전용관") {
+      state.showQueue = false;
+      state.showAudio = false;
+      state.showPassPage = true;
+      state.passFromHires = true;
+      state.chip = "고음질 전용관";
+      state.tab = "home";
+      state.screen = "home";
       return render();
     }
     state.chip = target.dataset.chip;
     state.screen = "home";
   } else if (action === "tab") {
+    state.showPassPage = false;
+    state.passFromHires = false;
     state.tab = target.dataset.tab;
     state.screen = "home";
     state.chip = "홈";
@@ -2234,7 +2342,21 @@ app.addEventListener("click", (event) => {
     state.screen = "home";
     state.expanded = false;
   } else if (action === "pass") {
-    state.sheet = "pass";
+    state.showQueue = false;
+    state.showAudio = false;
+    state.showLogin = false;
+    state.showPassPage = true;
+    state.passFromHires = false;
+    state.sheet = null;
+    return render();
+  } else if (action === "close-pass-page") {
+    state.showPassPage = false;
+    state.passFromHires = false;
+    if (state.chip === "고음질 전용관") state.chip = "홈";
+    return render();
+  } else if (action === "buy-pass") {
+    showToast("이용권 구매가 신청되었습니다.");
+    return;
   } else if (action === "close-sheet") {
     state.sheet = null;
   }

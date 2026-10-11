@@ -232,6 +232,29 @@ button {
   display: none;
 }
 
+.home-promo-row {
+  display: flex;
+  gap: 12px;
+  width: max-content;
+  padding-right: 20px;
+}
+
+.home-promo-card {
+  width: 250px;
+  flex: none;
+  border-radius: 16px;
+  overflow: hidden;
+  padding: 0;
+  line-height: 0;
+}
+
+.home-promo-card img {
+  width: 250px;
+  height: 313px;
+  object-fit: cover;
+  display: block;
+}
+
 .promo-banner-wrap {
   position: relative;
   width: 415px;
@@ -1837,4 +1860,225 @@ button {
   height: 100%;
   object-fit: cover;
   display: block;
+}
+
+.hires-page {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: #1b1429;
+  color: #fff;
+}
+
+.hires-header {
+  height: 50px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  background: #fff;
+  color: #000;
+}
+
+.hires-header h1 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.2px;
+}
+
+.hires-close {
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+}
+
+.hires-header-spacer {
+  width: 28px;
+  height: 28px;
+}
+
+.hires-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding-bottom: 36px;
+}
+
+.hires-ad-scroller {
+  height: 308px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  background: #111;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-x;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+}
+
+.hires-ad-scroller::-webkit-scrollbar {
+  display: none;
+}
+
+.hires-ad-scroller img {
+  height: 308px;
+  width: auto;
+  max-width: none;
+  display: block;
+  pointer-events: none;
+  -webkit-user-drag: none;
+  user-select: none;
+}
+
+.hires-hero,
+.hires-block,
+.hires-price {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.hires-hero {
+  gap: 10px;
+  padding: 34px 28px 28px;
+}
+
+.hires-badge {
+  position: relative;
+  width: 81px;
+  height: 81px;
+  margin-bottom: 10px;
+}
+
+.hires-badge span {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: 36px;
+  font-weight: 700;
+  line-height: 1;
+  background: linear-gradient(138deg, #ce36e9 18%, #682ede 56%, #33b6f3 96%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.hires-kicker,
+.hires-muted {
+  margin: 0;
+  color: #9d99aa;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.45;
+  letter-spacing: -0.15px;
+}
+
+.hires-title {
+  margin: 0;
+  font-size: 48px;
+  font-weight: 700;
+  letter-spacing: -0.48px;
+  line-height: 1.15;
+  background: linear-gradient(159deg, #ce36e9 18%, #682ede 56%, #33b6f3 96%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.hires-lead {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.45;
+  letter-spacing: -0.15px;
+  background: linear-gradient(170deg, #711ee6 11%, #b424e4 93%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.hires-block {
+  gap: 16px;
+  padding: 18px 0 8px;
+}
+
+.hires-wave {
+  display: block;
+  max-width: none;
+}
+
+.hires-white {
+  margin: 0;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.45;
+}
+
+.hires-bit {
+  gap: 8px;
+  padding-top: 48px;
+}
+
+.hires-bit-label {
+  margin: 0;
+  font-size: 23px;
+  font-weight: 700;
+}
+
+.hires-bit-value {
+  margin: 0 0 12px;
+  font-size: 32px;
+  font-weight: 800;
+  background: linear-gradient(155deg, #4d68e0 11%, #a22bca 93%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.hires-bit .hires-white {
+  margin-top: 4px;
+}
+
+.hires-price {
+  gap: 12px;
+  padding: 56px 24px 28px;
+}
+
+.hires-price-label {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 400;
+  color: #f6f6f6;
+}
+
+.hires-price-value {
+  margin: 0;
+  font-size: 64px;
+  font-weight: 900;
+  line-height: 0.92;
+  letter-spacing: -1px;
+}
+
+.hires-buy {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: min(352px, calc(100% - 50px));
+  height: 52px;
+  margin: 8px auto 0;
+  border-radius: 57px;
+  background: #6e3ede;
+  color: #fff;
+  font-size: 20px;
+  font-weight: 500;
 }
