@@ -6,6 +6,67 @@ const tracks = [];
 
 const labels = [];
 
+const labelPickTemplates = [
+  { id: "label-1", title: "시네마 파노라마", sub: "2000년대 유행곡" },
+  { id: "label-2", title: "나이트 드라이브", sub: "밤을 채우는 선율" },
+  { id: "label-3", title: "포커스 타임", sub: "집중할 때 듣는 곡" },
+  { id: "label-4", title: "선데이 무드", sub: "주말을 여는 리스트" },
+];
+
+function labelPickPlaylists() {
+  return labelPickTemplates.map((tpl, index) => {
+    const songs = tracks.slice(index * 6, index * 6 + 6).map((track) => ({
+      ...track,
+      id: `${tpl.id}-${track.id}`,
+      addedAt: Date.now(),
+    }));
+    return {
+      ...tpl,
+      color: "#243044",
+      cover: songs[0]?.cover || "",
+      tracks: songs,
+      time: songs.length ? `${songs.length * 3}분` : "0분",
+    };
+  });
+}
+
+function findLabelPick(id) {
+  return labelPickPlaylists().find((pl) => pl.id === id);
+}
+
+function playTrackList(list) {
+  if (!list || list.length === 0) return;
+  const first = list[0];
+  state.nowPlaying = {
+    title: first.title,
+    artist: first.artist,
+    color: first.color || "#2b3b4a",
+    cover: first.cover,
+    previewUrl: first.previewUrl,
+  };
+  state.paused = !first.previewUrl;
+  if (first.previewUrl) {
+    if (audioPlayer.src !== first.previewUrl) audioPlayer.src = first.previewUrl;
+    audioPlayer.play();
+  } else {
+    audioPlayer.pause();
+  }
+  list.forEach((track) => {
+    const next = {
+      id: Date.now() + Math.random(),
+      title: track.title,
+      artist: track.artist,
+      cover: track.cover,
+      previewUrl: track.previewUrl,
+      color: track.color || "#2b3b4a",
+      addedAt: Date.now(),
+    };
+    const existingIdx = state.queueTracks.findIndex((t) => t.title === next.title && t.artist === next.artist);
+    if (existingIdx > -1) state.queueTracks.splice(existingIdx, 1);
+    state.queueTracks.push(next);
+  });
+}
+
 const promos = {
   fast: { title: "고민없는 빠른선곡", lead: "내 취향 기반 추천! 고민 없이 바로 듣기" },
   time: { title: "타임머신", lead: "내가 애정했던 추억의 플레이리스트" },
@@ -461,8 +522,7 @@ function homeScreen() {
   if (state.chip !== "홈")
     return `<section class="page" ><h1>${state.chip}</h1><div class="empty-list">${tracks.slice(0, 4).map((t, i) => `<button class="row" data-action="play" data-index="${i}">${t.title}</button>`).join("")}</div></section> `;
 
-  const labelCards = labels.map((c, i) => renderCard(c, i, "label")).join("");
-  const magazineCards = labels.map((c, i) => renderCard(c, i, "magazine")).join("");
+  const labelCards = labelPickPlaylists().map(labelPickCard).join("");
 
   return `
       <div class="promo-section">
@@ -485,10 +545,51 @@ function homeScreen() {
     <section class="label-block">
       <div class="section-head"><button class="plain-title" data-action="labels">레이블 PICK &gt;</button></div>
       <div class="cards">${labelCards}</div>
-    </section>
-    <section class="label-block magazine-block">
-      <div class="section-head"><button class="plain-title" data-action="magazines">매거진 &gt;</button></div>
-      <div class="cards">${magazineCards}</div>
+    </section>`;
+}
+
+function labelPickCard(pl) {
+  const cover = pl.cover
+    ? `background-image:url(${pl.cover}); background-size:cover;`
+    : `background-color:${pl.color};`;
+  return `
+    <div class="label-pick-card" data-action="open-label-pick" data-id="${pl.id}">
+      <div class="label-pick-cover" style="${cover}">
+        <div class="label-pick-copy">
+          <strong>${pl.title}</strong>
+          <em>${pl.sub}</em>
+        </div>
+        <button type="button" class="label-pick-play" data-action="play-label-pick" data-id="${pl.id}" aria-label="${pl.title} 재생"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></button>
+      </div>
+    </div>`;
+}
+
+function labelPickDetailScreen() {
+  const pl = findLabelPick(state.currentLabelId);
+  if (!pl) return `<section class="page"><button class="back" data-action="back">‹ 홈</button><h1>플레이리스트</h1></section>`;
+  const saved = myPlaylists.some((item) => item.sourceId === pl.id);
+  const cover = pl.cover
+    ? `background-image:url(${pl.cover}); background-size:cover;`
+    : `background-color:${pl.color};`;
+  const songs = pl.tracks.length
+    ? pl.tracks.map((track, index) => `
+      <button class="track" data-action="play-label-track" data-id="${pl.id}" data-index="${index}">
+        ${track.cover ? `<img class="cover" src="${track.cover}" alt="" />` : `<span class="cover" style="background:${track.color}"></span>`}
+        <span class="meta"><strong>${track.title}</strong><em>${track.artist}</em></span>
+      </button>`).join("")
+    : `<div style="padding:40px 0; text-align:center; color:#888;">곡을 불러오는 중입니다.</div>`;
+
+  return `
+    <section class="page label-pick-detail">
+      <button class="back" data-action="back">‹ 홈</button>
+      <div class="label-pick-hero" style="${cover}"></div>
+      <h1>${pl.title}</h1>
+      <p class="label-pick-sub">${pl.sub} · ${pl.tracks.length}곡</p>
+      <div class="label-pick-actions">
+        <button type="button" class="label-pick-save${saved ? " is-saved" : ""}" data-action="save-label-pick" data-id="${pl.id}">${saved ? "담김" : "내 플레이리스트에 담기"}</button>
+        <button type="button" class="label-pick-listen" data-action="play-label-pick" data-id="${pl.id}">전체듣기</button>
+      </div>
+      <div class="track-list">${songs}</div>
     </section>`;
 }
 
@@ -1613,7 +1714,10 @@ function render() {
       else body = searchScreen();
     }
     else if (state.tab === "library") body = libraryScreen();
-    else if (state.tab === "home") body = state.screen === "home" ? homeScreen() : listScreen();
+    else if (state.tab === "home") {
+      if (state.screen === "label-pick") body = labelPickDetailScreen();
+      else body = state.screen === "home" ? homeScreen() : listScreen();
+    }
     else body = tabScreen();
 
     app.innerHTML = `
@@ -2336,6 +2440,45 @@ app.addEventListener("click", (event) => {
     state.screen = "chart";
     state.screenTitle = "차트";
     state.expanded = true;
+  } else if (action === "open-label-pick") {
+    state.tab = "home";
+    state.chip = "홈";
+    state.screen = "label-pick";
+    state.currentLabelId = target.dataset.id;
+    return render();
+  } else if (action === "play-label-pick") {
+    const pl = findLabelPick(target.dataset.id);
+    if (!pl || pl.tracks.length === 0) return alert("담을 곡을 아직 불러오지 못했습니다.");
+    playTrackList(pl.tracks);
+    return render();
+  } else if (action === "play-label-track") {
+    const pl = findLabelPick(target.dataset.id);
+    const index = Number(target.dataset.index);
+    if (!pl || !pl.tracks[index]) return;
+    playTrackList(pl.tracks.slice(index).concat(pl.tracks.slice(0, index)));
+    return render();
+  } else if (action === "save-label-pick") {
+    const pl = findLabelPick(target.dataset.id);
+    if (!pl) return;
+    if (myPlaylists.some((item) => item.sourceId === pl.id)) {
+      showToast("이미 내 플레이리스트에 담긴 리스트입니다.");
+      return;
+    }
+    myPlaylists.unshift({
+      id: "pl_" + Date.now(),
+      sourceId: pl.id,
+      title: pl.title,
+      sub: `총 ${pl.tracks.length}곡`,
+      time: pl.time,
+      color: pl.color,
+      tracks: pl.tracks.map((track) => ({
+        ...track,
+        id: Date.now() + Math.random(),
+        addedAt: Date.now(),
+      })),
+    });
+    showToast(`'${pl.title}'을 내 플레이리스트에 담았습니다.`);
+    return;
   } else if (action === "back" || action === "logo") {
     state.tab = "home";
     state.chip = "홈";
