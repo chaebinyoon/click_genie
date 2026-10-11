@@ -194,7 +194,79 @@ const state = {
   queueTracks: [],
   toastMessage: null,
   showLogin: false,
+  likedTracks: [],
+  authUser: null,
 };
+
+function trackKeyOf(title, artist) {
+  return `${(title || "").trim().toLowerCase()}::${(artist || "").trim().toLowerCase()}`;
+}
+
+function isTrackLiked(title, artist) {
+  const key = trackKeyOf(title, artist);
+  return (state.likedTracks || []).some(
+    (track) => (track.trackKey || trackKeyOf(track.title, track.artist)) === key,
+  );
+}
+
+function accountAvatarSrc() {
+  const meta = (state.authUser && state.authUser.user_metadata) || {};
+  return meta.avatar_url || meta.picture || "assets/frame_14.png";
+}
+
+function accountLabel() {
+  const meta = (state.authUser && state.authUser.user_metadata) || {};
+  return (
+    meta.full_name ||
+    meta.name ||
+    meta.user_name ||
+    (state.authUser && state.authUser.email) ||
+    "회원"
+  );
+}
+
+function likeButtonHtml(track) {
+  const liked = isTrackLiked(track.title, track.artist);
+  return `<button type="button" class="pld-like-btn${liked ? " is-on" : ""}" data-action="toggle-like" data-title="${encodeURIComponent(track.title || "")}" data-artist="${encodeURIComponent(track.artist || "")}" data-color="${encodeURIComponent(track.color || "")}" data-preview="${encodeURIComponent(track.previewUrl || "")}" data-cover="${encodeURIComponent(track.cover || "")}" aria-label="좋아요">${liked ? "♥" : "♡"}</button>`;
+}
+
+function librarySnapshot() {
+  return {
+    playlists: myPlaylists,
+    likedTracks: state.likedTracks || [],
+    queueTracks: state.queueTracks || [],
+    recentSearches: state.recentSearches || [],
+  };
+}
+
+function applyLibrarySnapshot(snapshot) {
+  const next = snapshot || {};
+  myPlaylists.splice(0, myPlaylists.length, ...(next.playlists || []));
+  state.likedTracks = next.likedTracks || [];
+  state.queueTracks = next.queueTracks || [];
+  state.recentSearches = next.recentSearches || [];
+}
+
+function toggleLikedTrack(track) {
+  const key = trackKeyOf(track.title, track.artist);
+  if (!key || key === "::") return;
+  const index = (state.likedTracks || []).findIndex(
+    (item) => (item.trackKey || trackKeyOf(item.title, item.artist)) === key,
+  );
+  if (index > -1) {
+    state.likedTracks.splice(index, 1);
+    return;
+  }
+  state.likedTracks.unshift({
+    trackKey: key,
+    title: track.title,
+    artist: track.artist,
+    cover: track.cover || "",
+    previewUrl: track.previewUrl || "",
+    color: track.color || "#2b3b4a",
+    addedAt: Date.now(),
+  });
+}
 
 const app = document.getElementById("app");
 const audioPlayer = new Audio();
@@ -1035,7 +1107,7 @@ function searchScreen() {
         <h1>검색</h1>
         <div class="lib-header-right">
           <button class="lib-pass-btn" data-action="pass">이용권</button>
-          <button class="avatar" data-action="profile" style="width:32px;height:32px;border-radius:50%;padding:0;background:none;border:none;cursor:pointer;"><img src="assets/frame_14.png" width="32" height="32" alt="프로필" style="border-radius:50%;" /></button>
+          <button class="avatar" data-action="profile" style="width:32px;height:32px;border-radius:50%;padding:0;background:none;border:none;cursor:pointer;"><img src="${accountAvatarSrc()}" width="32" height="32" alt="프로필" style="border-radius:50%;" /></button>
         </div>
       </div>
       <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 24px;">
@@ -1189,7 +1261,7 @@ function libraryMainScreen() {
         <h1>내음악</h1>
         <div class="lib-header-right">
           <button class="lib-pass-btn" data-action="pass">이용권</button>
-          <button class="avatar" data-action="profile" style="width:32px;height:32px;border-radius:50%;padding:0;background:none;"><img src="assets/frame_14.png" width="32" height="32" alt="프로필" style="border-radius:50%;" /></button>
+          <button class="avatar" data-action="profile" style="width:32px;height:32px;border-radius:50%;padding:0;background:none;"><img src="${accountAvatarSrc()}" width="32" height="32" alt="프로필" style="border-radius:50%;" /></button>
         </div>
       </div>
       <div class="lib-quick-grid">
@@ -1248,6 +1320,7 @@ function playlistDetailScreen() {
             <div class="pld-song-artist">${track.artist}</div>
           </div>
           <div class="pld-song-actions">
+            ${likeButtonHtml(track)}
             <button class="lib-pl-play-btn" data-action="play-custom" data-title="${encodeURIComponent(track.title)}" data-artist="${encodeURIComponent(track.artist)}" data-color="${track.color}" data-preview="${track.previewUrl || ""}" data-cover="${track.cover || ""}"><svg width=\'1em\' height=\'1em\' viewBox=\'0 0 24 24\' fill=\'currentColor\' xmlns=\'http://www.w3.org/2000/svg\'><path d=\'M8 5v14l11-7z\'/></svg></button>
           </div>
         </div> `;
@@ -1889,6 +1962,42 @@ function replacePlaylistOrder(next) {
   myPlaylists.splice(0, myPlaylists.length, ...next);
 }
 
+function likesScreen() {
+  const items = state.likedTracks || [];
+  const rows = items
+    .map((track) => {
+      const coverBg = track.cover
+        ? `background-image:url(${track.cover}); background-size:cover;`
+        : `background-color:${track.color || "#e0e0e0"};`;
+      return `
+        <div class="pld-song-item">
+          <div class="pld-song-thumb" style="${coverBg}"></div>
+          <div class="pld-song-info" data-action="play-custom" data-title="${encodeURIComponent(track.title || "")}" data-artist="${encodeURIComponent(track.artist || "")}" data-color="${track.color || ""}" data-preview="${track.previewUrl || ""}" data-cover="${track.cover || ""}">
+            <div class="pld-song-title">${escapeHtml(track.title || "")}</div>
+            <div class="pld-song-artist">${escapeHtml(track.artist || "")}</div>
+          </div>
+          <div class="pld-song-actions">
+            ${likeButtonHtml(track)}
+          </div>
+        </div>`;
+    })
+    .join("");
+
+  return `
+    <div class="pld-page">
+      <div class="pld-top-bar">
+        <button class="pld-back-btn" data-action="library-back">‹</button>
+      </div>
+      <div class="pld-hero">
+        <div class="pld-hero-title">좋아요</div>
+        <div class="pld-hero-sub">${items.length}곡</div>
+      </div>
+      <div class="pld-song-list">
+        ${rows || `<div style="padding: 48px 20px; text-align: center; color: #888;">하트를 누른 곡이 여기에 모입니다.</div>`}
+      </div>
+    </div>`;
+}
+
 function libraryLoginGateScreen() {
   return `
     <section class="lib-gate">
@@ -1907,6 +2016,7 @@ function libraryPreparingScreen() {
 }
 
 function libraryScreen() {
+  if (state.libraryView === "likes") return likesScreen();
   if (state.libraryView === "login-needed") return libraryLoginGateScreen();
   if (state.libraryView === "preparing") return libraryPreparingScreen();
   if (state.libraryView === "detail") return playlistDetailScreen();
@@ -1924,7 +2034,7 @@ function tabScreen() {
       <h1>${tabs.find((tab) => tab.id === state.tab).label}</h1>
       <div class="lib-header-right">
         <button class="lib-pass-btn" data-action="pass">이용권</button>
-        <button class="avatar" data-action="profile" style="width:32px;height:32px;border-radius:50%;padding:0;background:none;border:none;cursor:pointer;"><img src="assets/frame_14.png" width="32" height="32" alt="프로필" style="border-radius:50%;" /></button>
+        <button class="avatar" data-action="profile" style="width:32px;height:32px;border-radius:50%;padding:0;background:none;border:none;cursor:pointer;"><img src="${accountAvatarSrc()}" width="32" height="32" alt="프로필" style="border-radius:50%;" /></button>
       </div>
     </div>
     <div class="empty-list">${rows.map((row) => `<div class="row">${row}</div>`).join("")}</div>
@@ -2022,8 +2132,13 @@ function fullPlayerScreen() {
       
       <div style="padding: 0 24px 40px;">
         <div style="margin-bottom: 24px;">
-          <h2 style="font-size: 22px; font-weight: 700; margin: 0 0 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${title}</h2>
-          <div style="font-size: 15px; color: #aaa;">${artist}</div>
+          <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:12px;">
+            <div style="min-width:0; flex:1;">
+              <h2 style="font-size: 22px; font-weight: 700; margin: 0 0 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${title}</h2>
+              <div style="font-size: 15px; color: #aaa;">${artist}</div>
+            </div>
+            ${likeButtonHtml({ title, artist, cover, previewUrl: track.previewUrl, color: track.color })}
+          </div>
         </div>
         
         <div style="margin-bottom: 32px;">
@@ -2051,6 +2166,29 @@ function fullPlayerScreen() {
 }
 
 function loginScreen() {
+  if (state.authUser) {
+    const providerNames = { google: "Google", kakao: "카카오" };
+    const provider = providerNames[state.authUser.app_metadata?.provider] || "소셜 로그인";
+    return `
+      <div style="background: #fff; width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 500; display: flex; flex-direction: column;">
+        <header style="display: flex; align-items: center; justify-content: center; height: 56px; position: relative;">
+          <button data-action="close-login" style="position: absolute; left: 16px; background: none; border: none; font-size: 24px; color: #141414; padding: 0; cursor: pointer; font-weight: 300;"><svg width='1em' height='1em' viewBox='0 0 24 24' fill='currentColor' xmlns='http://www.w3.org/2000/svg'><path d='M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z'/></svg></button>
+          <h2 style="font-size: 18px; font-weight: 700; color: #141414; margin: 0;">내 정보</h2>
+        </header>
+        <div class="account-card">
+          <img src="${accountAvatarSrc()}" alt="" />
+          <strong>${escapeHtml(accountLabel())}</strong>
+          <p>${escapeHtml(provider)}</p>
+          <button type="button" data-action="logout" style="width: 100%; max-width: 280px; padding: 16px; background: #141414; color: #fff; border: none; border-radius: 4px; font-size: 16px; font-weight: bold; cursor: pointer;">로그아웃</button>
+        </div>
+      </div>`;
+  }
+
+  const providers = [
+    ["google", "Google 로그인", "#fff", "1px solid #e0e0e0", `<svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>`],
+    ["kakao", "카카오 로그인", "#fee500", "none", `<svg width="26" height="26" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 4C6.5 4 2 7.6 2 12c0 2.5 1.4 4.8 3.6 6.3-.3 1.2-1 3.5-1 3.5s-.1.2 0 .2.2 0 .3-.1l4.2-2.8c.9.2 1.9.4 2.9.4 5.5 0 10-3.6 10-8s-4.5-8-10-8z" fill="#3c1e1e"/></svg>`],
+  ];
+
   return `
     <div style="background: #fff; width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 500; display: flex; flex-direction: column;">
       <header style="display: flex; align-items: center; justify-content: center; height: 56px; position: relative; border-bottom: 1px solid transparent;">
@@ -2066,7 +2204,7 @@ function loginScreen() {
         <input type="text" placeholder="지니 아이디" style="width: 100%; padding: 16px; background: #f8f8f8; border: none; border-radius: 4px; font-size: 15px; margin-bottom: 12px; box-sizing: border-box; outline: none; color: #141414;" />
         <input type="password" placeholder="비밀번호" style="width: 100%; padding: 16px; background: #f8f8f8; border: none; border-radius: 4px; font-size: 15px; margin-bottom: 24px; box-sizing: border-box; outline: none; color: #141414;" />
         
-        <button data-action="close-login" style="width: 100%; padding: 16px; background: #0096fd; color: #fff; border: none; border-radius: 4px; font-size: 16px; font-weight: bold; margin-bottom: 24px; cursor: pointer;">로그인</button>
+        <button type="button" data-action="social-login-hint" style="width: 100%; padding: 16px; background: #0096fd; color: #fff; border: none; border-radius: 4px; font-size: 16px; font-weight: bold; margin-bottom: 24px; cursor: pointer;">로그인</button>
         
         <div style="display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: #333;">
           <span style="cursor: pointer; font-weight: 500;">회원가입 &gt;</span>
@@ -2075,27 +2213,15 @@ function loginScreen() {
           </span>
         </div>
         
-        <div style="display: flex; justify-content: center; gap: 16px; margin-top: 48px;">
-          <button style="width: 50px; height: 50px; border-radius: 50%; background: #fff; border: 1px solid #e0e0e0; padding: 0; display: flex; justify-content: center; align-items: center; cursor: pointer;">
-            <svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-              <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-              <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
-              <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-            </svg>
-          </button>
-          <button style="width: 50px; height: 50px; border-radius: 50%; background: #fee500; border: none; padding: 0; display: flex; justify-content: center; align-items: center; cursor: pointer;">
-            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 4C6.5 4 2 7.6 2 12c0 2.5 1.4 4.8 3.6 6.3-.3 1.2-1 3.5-1 3.5s-.1.2 0 .2.2 0 .3-.1l4.2-2.8c.9.2 1.9.4 2.9.4 5.5 0 10-3.6 10-8s-4.5-8-10-8z" fill="#3c1e1e"/></svg>
-          </button>
-          <button style="width: 50px; height: 50px; border-radius: 50%; background: #3b5998; border: none; padding: 0; display: flex; justify-content: center; align-items: center; cursor: pointer;">
-            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M15 8H17V5H14C11.5 5 10 6.5 10 9V11H8V14H10V21H13V14H16L17 11H13V9C13 8.5 13.5 8 14 8H15Z" fill="white"/></svg>
-          </button>
-          <button style="width: 50px; height: 50px; border-radius: 50%; background: #000; border: none; padding: 0; display: flex; justify-content: center; align-items: center; cursor: pointer;">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M18.9 3H21.5L14 11.5L22.5 21H16.5L11.5 14L5.5 21H3L11 12L3 3H9.5L14 9.5L18.9 3ZM17.5 19H19L7 5H5.5L17.5 19Z" fill="white"/></svg>
-          </button>
-          <button style="width: 50px; height: 50px; border-radius: 50%; background: #000; border: none; padding: 0; display: flex; justify-content: center; align-items: center; cursor: pointer;">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M16 4.5C16.8 3.5 17.3 2.3 17.1 1C15.9 1.1 14.5 1.8 13.6 2.8C12.9 3.6 12.3 4.9 12.5 6.2C13.8 6.3 15.2 5.5 16 4.5ZM17.3 13.5C17.3 10.3 19.9 8.8 20 8.7C18.4 6.4 16 6 15.2 5.9C13.1 5.7 11.1 7.2 10 7.2C8.9 7.2 7.3 5.9 5.5 6C3.2 6 1.1 7.4 0 9.4C-2.2 13.3 1.3 19.2 3.5 22.3C4.5 23.8 5.7 25.5 7.4 25.4C8.9 25.3 9.5 24.3 11.4 24.3C13.3 24.3 13.8 25.4 15.4 25.4C17.1 25.4 18.1 23.8 19.1 22.3C20.4 20.4 20.9 18.6 20.9 18.5C20.8 18.4 17.3 17.2 17.3 13.5Z" fill="white" transform="scale(0.85) translate(2,0)"/></svg>
-          </button>
+        <div style="display: flex; justify-content: center; gap: 20px; margin-top: 48px;">
+          ${providers
+            .map(
+              ([id, label, bg, border, icon]) => `
+          <button type="button" class="oauth-btn" data-action="oauth" data-provider="${id}" aria-label="${label}" style="width: 50px; height: 50px; border-radius: 50%; background: ${bg}; border: ${border}; padding: 0; display: flex; justify-content: center; align-items: center; cursor: pointer;">
+            ${icon}
+          </button>`,
+            )
+            .join("")}
         </div>
       </div>
       
@@ -2244,7 +2370,7 @@ function render() {
     else body = tabScreen();
 
     app.innerHTML = `
-        ${showGlobalHeader ? `<header class="header">${state.tab === "home" ? `<button class="logo" data-action="logo" aria-label="지니 홈"><img src="assets/logo.png" alt="genie" /></button>` : `<div style="flex:1;"></div>`}<div class="header-right"><button class="pass" data-action="pass">이용권</button><button class="avatar" data-action="profile" style="padding:0;background:none;border:none;cursor:pointer;"><img src="assets/frame_14.png" width="32" height="32" alt="프로필" style="border-radius:50%;" /></button></div></header>` : ""}
+        ${showGlobalHeader ? `<header class="header">${state.tab === "home" ? `<button class="logo" data-action="logo" aria-label="지니 홈"><img src="assets/logo.png" alt="genie" /></button>` : `<div style="flex:1;"></div>`}<div class="header-right"><button class="pass" data-action="pass">이용권</button><button class="avatar" data-action="profile" style="padding:0;background:none;border:none;cursor:pointer;"><img src="${accountAvatarSrc()}" width="32" height="32" alt="프로필" style="border-radius:50%;" /></button></div></header>` : ""}
       ${showChips ? `<nav class="chips"><div class="chip-row">${state.chips.map((c) => `<button class="chip${c === state.chip ? " is-on" : ""}" data-action="chip" data-chip="${c}">${c}</button>`).join("")}</div></nav>` : ""}
     <main class="main" ${isSearchEditing ? 'style="padding-bottom: 70px;"' : ""}>${body}</main>
       ${
@@ -2329,6 +2455,7 @@ function render() {
   setupFullPlayerSwipe();
   setupFullPlayerProgressDrag();
   setupHiresAdTouch();
+  if (window.GenieSync) GenieSync.noteChange();
 }
 
 function setupHiresAdTouch() {
@@ -2665,7 +2792,7 @@ function audioScreen() {
       <div style="display: flex; align-items: center; justify-content: space-between; height: 56px; padding: 0 16px; border-bottom: 1px solid #f4f4f4; flex: none;">
         <button data-action="close-audio" style="font-size: 24px; background: none; border: none; cursor: pointer;">‹</button>
         <div style="font-size: 18px; font-weight: 700;">오디오</div>
-        <button class="avatar" style="width:32px;height:32px;border-radius:50%;padding:0;background:none;"><img src="assets/frame_14.png" width="32" height="32" alt="프로필" style="border-radius:50%;" /></button>
+        <button class="avatar" style="width:32px;height:32px;border-radius:50%;padding:0;background:none;"><img src="${accountAvatarSrc()}" width="32" height="32" alt="프로필" style="border-radius:50%;" /></button>
       </div>
       
       <div style="padding: 16px 20px 0; flex: none;">
@@ -2865,6 +2992,24 @@ app.addEventListener("click", (event) => {
 
   if (action === "profile") {
     state.showLogin = true;
+    return render();
+  } else if (action === "oauth") {
+    if (window.GenieSync) GenieSync.signIn(target.dataset.provider);
+    return;
+  } else if (action === "logout") {
+    if (window.GenieSync) GenieSync.signOut();
+    return;
+  } else if (action === "social-login-hint") {
+    showToast("아래 소셜 계정으로 로그인해 주세요.");
+    return;
+  } else if (action === "toggle-like") {
+    toggleLikedTrack({
+      title: decodeURIComponent(target.dataset.title || ""),
+      artist: decodeURIComponent(target.dataset.artist || ""),
+      color: decodeURIComponent(target.dataset.color || ""),
+      previewUrl: decodeURIComponent(target.dataset.preview || ""),
+      cover: decodeURIComponent(target.dataset.cover || ""),
+    });
     return render();
   } else if (action === "close-login") {
     state.showLogin = false;
@@ -3209,7 +3354,11 @@ app.addEventListener("click", (event) => {
       state.libraryView = "preparing";
       return render();
     }
-    if (type === "like" || type === "album" || type === "most") {
+    if (type === "like") {
+      state.libraryView = "likes";
+      return render();
+    }
+    if (type === "album" || type === "most") {
       state.libraryView = "login-needed";
       return render();
     }
@@ -4599,7 +4748,24 @@ async function fetchTopTracks() {
   }
 }
 fetchTopTracks();
+if (window.GenieSync) GenieSync.hydrateGuest(applyLibrarySnapshot);
 render();
+if (window.GenieSync) {
+  GenieSync.start({
+    getSnapshot: librarySnapshot,
+    applySnapshot: applyLibrarySnapshot,
+    onUser(user) {
+      state.authUser = user;
+      if (!user) state.showLogin = false;
+    },
+    onPaint() {
+      render();
+    },
+    onNotice(message) {
+      showToast(message);
+    },
+  });
+}
 
 // 딥링크 및 URL 파라미터 제어
 const urlParams = new URLSearchParams(window.location.search);
