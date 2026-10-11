@@ -3,7 +3,6 @@
   const GUEST_KEY = "genie.guest.library.v1";
   const PROVIDERS = {
     google: "google",
-    kakao: "kakao",
   };
 
   let client = null;

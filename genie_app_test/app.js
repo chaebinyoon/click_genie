@@ -214,6 +214,13 @@ function accountAvatarSrc() {
   return meta.avatar_url || meta.picture || "assets/frame_14.png";
 }
 
+function accountEntryHtml() {
+  if (!state.authUser) {
+    return `<button type="button" class="header-login" data-action="profile">로그인</button>`;
+  }
+  return `<button type="button" class="avatar" data-action="profile" aria-label="프로필"><img src="${accountAvatarSrc()}" width="32" height="32" alt="" /></button>`;
+}
+
 function accountLabel() {
   const meta = (state.authUser && state.authUser.user_metadata) || {};
   return (
@@ -1107,7 +1114,7 @@ function searchScreen() {
         <h1>검색</h1>
         <div class="lib-header-right">
           <button class="lib-pass-btn" data-action="pass">이용권</button>
-          <button class="avatar" data-action="profile" style="width:32px;height:32px;border-radius:50%;padding:0;background:none;border:none;cursor:pointer;"><img src="${accountAvatarSrc()}" width="32" height="32" alt="프로필" style="border-radius:50%;" /></button>
+          ${accountEntryHtml()}
         </div>
       </div>
       <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 24px;">
@@ -1261,7 +1268,7 @@ function libraryMainScreen() {
         <h1>내음악</h1>
         <div class="lib-header-right">
           <button class="lib-pass-btn" data-action="pass">이용권</button>
-          <button class="avatar" data-action="profile" style="width:32px;height:32px;border-radius:50%;padding:0;background:none;"><img src="${accountAvatarSrc()}" width="32" height="32" alt="프로필" style="border-radius:50%;" /></button>
+          ${accountEntryHtml()}
         </div>
       </div>
       <div class="lib-quick-grid">
@@ -2034,7 +2041,7 @@ function tabScreen() {
       <h1>${tabs.find((tab) => tab.id === state.tab).label}</h1>
       <div class="lib-header-right">
         <button class="lib-pass-btn" data-action="pass">이용권</button>
-        <button class="avatar" data-action="profile" style="width:32px;height:32px;border-radius:50%;padding:0;background:none;border:none;cursor:pointer;"><img src="${accountAvatarSrc()}" width="32" height="32" alt="프로필" style="border-radius:50%;" /></button>
+        ${accountEntryHtml()}
       </div>
     </div>
     <div class="empty-list">${rows.map((row) => `<div class="row">${row}</div>`).join("")}</div>
@@ -2167,7 +2174,7 @@ function fullPlayerScreen() {
 
 function loginScreen() {
   if (state.authUser) {
-    const providerNames = { google: "Google", kakao: "카카오" };
+    const providerNames = { google: "Google" };
     const provider = providerNames[state.authUser.app_metadata?.provider] || "소셜 로그인";
     return `
       <div style="background: #fff; width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 500; display: flex; flex-direction: column;">
@@ -2184,49 +2191,15 @@ function loginScreen() {
       </div>`;
   }
 
-  const providers = [
-    ["google", "Google 로그인", "#fff", "1px solid #e0e0e0", `<svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>`],
-    ["kakao", "카카오 로그인", "#fee500", "none", `<svg width="26" height="26" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 4C6.5 4 2 7.6 2 12c0 2.5 1.4 4.8 3.6 6.3-.3 1.2-1 3.5-1 3.5s-.1.2 0 .2.2 0 .3-.1l4.2-2.8c.9.2 1.9.4 2.9.4 5.5 0 10-3.6 10-8s-4.5-8-10-8z" fill="#3c1e1e"/></svg>`],
-  ];
-
   return `
-    <div style="background: #fff; width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 500; display: flex; flex-direction: column;">
-      <header style="display: flex; align-items: center; justify-content: center; height: 56px; position: relative; border-bottom: 1px solid transparent;">
-        <button data-action="close-login" style="position: absolute; left: 16px; background: none; border: none; font-size: 24px; color: #141414; padding: 0; cursor: pointer; font-weight: 300;"><svg width=\'1em\' height=\'1em\' viewBox=\'0 0 24 24\' fill=\'currentColor\' xmlns=\'http://www.w3.org/2000/svg\'><path d=\'M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z\'/></svg></button>
-        <h2 style="font-size: 18px; font-weight: 700; color: #141414; margin: 0;">로그인</h2>
-      </header>
-      
-      <div style="padding: 24px 20px; flex: 1;">
-        <div style="text-align: right; margin-bottom: 12px;">
-          <span style="font-size: 13px; color: #555; cursor: pointer; display: flex; align-items: center; justify-content: flex-end; gap: 4px;">키보드 자판보기 <img src="assets/queue_chevron_down.svg" width="10" height="6" alt="" style="opacity: 0.5;"/></span>
-        </div>
-        
-        <input type="text" placeholder="지니 아이디" style="width: 100%; padding: 16px; background: #f8f8f8; border: none; border-radius: 4px; font-size: 15px; margin-bottom: 12px; box-sizing: border-box; outline: none; color: #141414;" />
-        <input type="password" placeholder="비밀번호" style="width: 100%; padding: 16px; background: #f8f8f8; border: none; border-radius: 4px; font-size: 15px; margin-bottom: 24px; box-sizing: border-box; outline: none; color: #141414;" />
-        
-        <button type="button" data-action="social-login-hint" style="width: 100%; padding: 16px; background: #0096fd; color: #fff; border: none; border-radius: 4px; font-size: 16px; font-weight: bold; margin-bottom: 24px; cursor: pointer;">로그인</button>
-        
-        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: #333;">
-          <span style="cursor: pointer; font-weight: 500;">회원가입 &gt;</span>
-          <span>
-            <span style="cursor: pointer; color: #555;">아이디 찾기</span> <span style="color: #ddd; margin: 0 8px;">|</span> <span style="cursor: pointer; color: #555;">비밀번호 찾기</span>
-          </span>
-        </div>
-        
-        <div style="display: flex; justify-content: center; gap: 20px; margin-top: 48px;">
-          ${providers
-            .map(
-              ([id, label, bg, border, icon]) => `
-          <button type="button" class="oauth-btn" data-action="oauth" data-provider="${id}" aria-label="${label}" style="width: 50px; height: 50px; border-radius: 50%; background: ${bg}; border: ${border}; padding: 0; display: flex; justify-content: center; align-items: center; cursor: pointer;">
-            ${icon}
-          </button>`,
-            )
-            .join("")}
-        </div>
-      </div>
-      
-      <div style="padding: 24px; font-size: 13px; color: #888; line-height: 1.5; letter-spacing: -0.3px;">
-        &middot; 로그인 완료 시 지니앱에 '자동 로그인' 됩니다. 본인 기기가 아니거나 여러 사람이 사용중인 기기인 경우 [내정보]에서 '로그아웃'을 해주세요.
+    <div class="login-screen">
+      <button type="button" class="login-close" data-action="close-login" aria-label="닫기"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>
+      <div class="login-body">
+        <img class="login-logo" src="assets/logo.png" alt="genie" />
+        <button type="button" class="google-login" data-action="oauth" data-provider="google">
+          <svg width="20" height="20" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+          3초 로그인
+        </button>
       </div>
     </div>
   `;
@@ -2370,7 +2343,7 @@ function render() {
     else body = tabScreen();
 
     app.innerHTML = `
-        ${showGlobalHeader ? `<header class="header">${state.tab === "home" ? `<button class="logo" data-action="logo" aria-label="지니 홈"><img src="assets/logo.png" alt="genie" /></button>` : `<div style="flex:1;"></div>`}<div class="header-right"><button class="pass" data-action="pass">이용권</button><button class="avatar" data-action="profile" style="padding:0;background:none;border:none;cursor:pointer;"><img src="${accountAvatarSrc()}" width="32" height="32" alt="프로필" style="border-radius:50%;" /></button></div></header>` : ""}
+        ${showGlobalHeader ? `<header class="header">${state.tab === "home" ? `<button class="logo" data-action="logo" aria-label="지니 홈"><img src="assets/logo.png" alt="genie" /></button>` : `<div style="flex:1;"></div>`}<div class="header-right"><button class="pass" data-action="pass">이용권</button>${accountEntryHtml()}</div></header>` : ""}
       ${showChips ? `<nav class="chips"><div class="chip-row">${state.chips.map((c) => `<button class="chip${c === state.chip ? " is-on" : ""}" data-action="chip" data-chip="${c}">${c}</button>`).join("")}</div></nav>` : ""}
     <main class="main" ${isSearchEditing ? 'style="padding-bottom: 70px;"' : ""}>${body}</main>
       ${
@@ -2998,9 +2971,6 @@ app.addEventListener("click", (event) => {
     return;
   } else if (action === "logout") {
     if (window.GenieSync) GenieSync.signOut();
-    return;
-  } else if (action === "social-login-hint") {
-    showToast("아래 소셜 계정으로 로그인해 주세요.");
     return;
   } else if (action === "toggle-like") {
     toggleLikedTrack({
