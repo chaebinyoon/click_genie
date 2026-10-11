@@ -94,8 +94,10 @@ const tabCopy = {
 // --- 2. 앱 상태 관리 ---
 const state = {
   tab: "home",
-  chips: ["홈", "Dolby", "고음질 전용관", "오디오", "DJ", "매거진"],
+  chips: ["홈", "Dolby", "고음질 전용관", "오디오", "매거진"],
   chip: "홈",
+  djMessages: [],
+  djSearching: false,
   screen: "home",
   screenTitle: "",
   screenLead: "",
@@ -518,7 +520,142 @@ function renderCard(card, index, type) {
     </button> `;
 }
 
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+function djDateLabel(date) {
+  const days = ["일요일", "월요일", "화요일", "수요일", "목요일", "금요일", "토요일"];
+  return `${date.getFullYear()}년 ${date.getMonth() + 1}월 ${date.getDate()}일 ${days[date.getDay()]}`;
+}
+
+function djTimeLabel(date) {
+  const hour = date.getHours();
+  const minute = String(date.getMinutes()).padStart(2, "0");
+  const period = hour < 12 ? "오전" : "오후";
+  const hour12 = hour % 12 || 12;
+  return `${period} ${hour12}:${minute}`;
+}
+
+function djTrackItems(tracks, messageIndex) {
+  return tracks.map((track, index) => `
+    <div class="dj-song">
+      ${track.cover ? `<img src="${escapeHtml(track.cover)}" alt="" />` : `<span class="dj-song-fallback"></span>`}
+      <div class="dj-song-meta">
+        <strong>${escapeHtml(track.title)}</strong>
+        <em>${escapeHtml(track.artist)}</em>
+      </div>
+      <button type="button" data-action="play-dj-track" data-msg="${messageIndex}" data-index="${index}" aria-label="${escapeHtml(track.title)} 재생"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></button>
+    </div>`).join("");
+}
+
+function djChatScreen() {
+  const messages = state.djMessages.map((message, index) => {
+    if (message.role === "user") {
+      return `
+        <div class="dj-user-block">
+          <div class="dj-user-bubble">${escapeHtml(message.text)}</div>
+          <time>${escapeHtml(message.time)}</time>
+        </div>`;
+    }
+    const songs = message.tracks && message.tracks.length
+      ? `<div class="dj-result">
+          <div class="dj-result-title">AI DJ가 찾은 음악</div>
+          ${djTrackItems(message.tracks, index)}
+        </div>`
+      : "";
+    return `
+      <div class="dj-reply">
+        <div class="dj-reply-head"><span class="dj-avatar"></span><strong>AI DJ</strong></div>
+        <p>${escapeHtml(message.text)}</p>
+        ${songs}
+      </div>`;
+  }).join("");
+
+  const pending = state.djSearching
+    ? `<div class="dj-reply"><div class="dj-reply-head"><span class="dj-avatar"></span><strong>AI DJ</strong></div><p>곡을 찾고 있어요...</p></div>`
+    : "";
+
+  return `
+    <section class="dj-page">
+      <div class="dj-thread" id="dj-thread">
+        <div class="dj-top">
+          <h1>AI DJ <span>beta</span></h1>
+          <p>지난 대화는 이 기기에만 남아 있어요. 원하는 분위기나 상황을 말하면 곡을 찾아 드릴게요.</p>
+        </div>
+        <div class="dj-date">${djDateLabel(new Date())}</div>
+        <div class="dj-reply">
+          <div class="dj-reply-head"><span class="dj-avatar"></span><strong>AI DJ</strong></div>
+          <p>어떤 음악이 필요하세요? 분위기, 상황, 가수 이름을 말해 주시면 곡을 추천해 드릴게요.</p>
+        </div>
+        ${messages}
+        ${pending}
+      </div>
+      <div class="dj-composer">
+        <input type="text" id="dj-input" placeholder="어떤 음악을 찾으세요?" autocomplete="off" enterkeyhint="send" />
+        <button type="button" data-action="send-dj" aria-label="전송">전송</button>
+      </div>
+    </section>`;
+}
+
+async function askDj(query) {
+  const text = query.trim();
+  if (!text || state.djSearching) return;
+  const now = new Date();
+  state.djMessages.push({ role: "user", text, time: djTimeLabel(now) });
+  state.djSearching = true;
+  render();
+  try {
+    let results = [];
+    for (const country of ["kr", "us"]) {
+      const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(text)}&entity=song&limit=8&country=${country}`);
+      const data = await res.json();
+      results = data.results || [];
+      if (results.length) break;
+    }
+    const found = results.slice(0, 5).map((item) => ({
+      title: item.trackName,
+      artist: item.artistName,
+      cover: item.artworkUrl100 ? item.artworkUrl100.replace("100x100bb", "300x300bb") : "",
+      previewUrl: item.previewUrl || "",
+      color: "#243044",
+    }));
+    state.djMessages.push({
+      role: "dj",
+      text: found.length
+        ? `요청하신 내용에 맞춰 ${found.length}곡을 찾아봤어요. 들어보고 싶은 곡을 재생해 보세요.`
+        : "어울리는 곡을 찾지 못했어요. 가수 이름이나 분위기를 조금 더 구체적으로 말해 주세요.",
+      time: djTimeLabel(new Date()),
+      tracks: found,
+    });
+  } catch (error) {
+    state.djMessages.push({
+      role: "dj",
+      text: "지금 곡을 불러오지 못했어요. 잠시 후 다시 물어봐 주세요.",
+      time: djTimeLabel(new Date()),
+      tracks: [],
+    });
+  } finally {
+    state.djSearching = false;
+    render();
+  }
+}
+
+function dolbyGateScreen() {
+  return `
+    <section class="dolby-page">
+      <p>이용권 사용자에게만 제공되는 기능입니다.</p>
+      <button type="button" class="dolby-pass" data-action="pass">이용권 구매하러 가기</button>
+    </section>`;
+}
+
 function homeScreen() {
+  if (state.chip === "DJ") return djChatScreen();
+  if (state.chip === "Dolby") return dolbyGateScreen();
   if (state.chip !== "홈")
     return `<section class="page" ><h1>${state.chip}</h1><div class="empty-list">${tracks.slice(0, 4).map((t, i) => `<button class="row" data-action="play" data-index="${i}">${t.title}</button>`).join("")}</div></section> `;
 
@@ -1718,6 +1855,7 @@ function render() {
       if (state.screen === "label-pick") body = labelPickDetailScreen();
       else body = state.screen === "home" ? homeScreen() : listScreen();
     }
+    else if (state.tab === "aidj") body = djChatScreen();
     else body = tabScreen();
 
     app.innerHTML = `
@@ -1787,6 +1925,9 @@ function render() {
   if (newPldEditEl) newPldEditEl.scrollTop = scrollState.pldEdit;
   if (newAlbumEl) newAlbumEl.scrollLeft = scrollState.searchAlbum;
   if (newAudioDetailEl) newAudioDetailEl.scrollTop = scrollState.audioDetail;
+
+  const djThread = document.getElementById("dj-thread");
+  if (djThread) djThread.scrollTop = djThread.scrollHeight;
 
   // Pagination 적용을 위한 IntersectionObserver 바인딩
   setupIntersectionObserver();
@@ -2393,6 +2534,16 @@ app.addEventListener("click", (event) => {
       fetchAudioEpisodes();
       return render();
     }
+    if (target.dataset.chip === "Dolby") {
+      state.showQueue = false;
+      state.showAudio = false;
+      state.showPassPage = false;
+      state.passFromHires = false;
+      state.chip = "Dolby";
+      state.tab = "home";
+      state.screen = "home";
+      return render();
+    }
     if (target.dataset.chip === "고음질 전용관") {
       state.showQueue = false;
       state.showAudio = false;
@@ -2440,6 +2591,18 @@ app.addEventListener("click", (event) => {
     state.screen = "chart";
     state.screenTitle = "차트";
     state.expanded = true;
+  } else if (action === "send-dj") {
+    const input = document.getElementById("dj-input");
+    const query = input ? input.value : "";
+    if (input) input.value = "";
+    askDj(query);
+    return;
+  } else if (action === "play-dj-track") {
+    const message = state.djMessages[Number(target.dataset.msg)];
+    const index = Number(target.dataset.index);
+    if (!message || !message.tracks || !message.tracks[index]) return;
+    playTrackList(message.tracks.slice(index).concat(message.tracks.slice(0, index)));
+    return render();
   } else if (action === "open-label-pick") {
     state.tab = "home";
     state.chip = "홈";
@@ -3454,7 +3617,12 @@ app.addEventListener("input", (event) => {
 });
 
 app.addEventListener("keydown", (event) => {
-  if (event.key === "Enter" && event.target.id === "search-input") {
+  if (event.key === "Enter" && event.target.id === "dj-input") {
+    event.preventDefault();
+    const query = event.target.value;
+    event.target.value = "";
+    askDj(query);
+  } else if (event.key === "Enter" && event.target.id === "search-input") {
     performSearch(event.target.value);
   } else if (event.key === "Enter" && event.target.id === "add-song-search-input") {
     const btn = document.querySelector('[data-action="do-add-song-search"]');
