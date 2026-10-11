@@ -847,11 +847,16 @@ button {
 
 .lib-sort-btn,
 .lib-edit-btn {
-  font-size: 12.5px;
+  font-size: 13px;
   color: #555;
   display: flex;
   align-items: center;
   gap: 3px;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-family: inherit;
 }
 
 .lib-actions-row {
@@ -1341,7 +1346,8 @@ button {
   padding: 4px;
 }
 
-.pld-edit-item {
+.pld-edit-item,
+.lib-pl-edit-item {
   display: flex;
   align-items: center;
   gap: 12px;

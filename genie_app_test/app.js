@@ -79,13 +79,15 @@ const state = {
   libraryView: "main",
   currentPlaylistId: "pl1",
   queueMyPlaylistId: null,
-  // [요구사항 2] 플레이리스트 접속 시 기본적으로 최근 추가순 정렬이 되도록 설정
-  sortOrder: "recent",
-  sortOrderLabel: "최근 추가순",
+  // 플레이리스트 곡 목록의 기본 정렬은 편집순(사용자가 바꾼 순서)입니다.
+  sortOrder: "default",
+  sortOrderLabel: "편집순",
   showSortSheet: false,
   sortTarget: "playlist",
   selectedSongIds: [],
   playlistSearchQuery: "",
+  playlistListSearchQuery: "",
+  selectedPlaylistIds: [],
 
   // 곡 추가 상태
   addSongTab: "queue",
@@ -742,6 +744,7 @@ function libraryMainScreen() {
       </div>
       <div class="lib-meta-row">
         <span class="lib-count-badge">전체 <span>${myPlaylists.length}</span></span>
+        <button type="button" class="lib-edit-btn" data-action="open-playlist-list-edit">편집</button>
       </div>
       <div class="lib-actions-row">
         <button class="lib-action-btn" data-action="new-playlist">+ 새로 만들기</button>
@@ -954,37 +957,47 @@ function playlistEditScreen() {
     </div> `;
 }
 
-// 6. 재생목록 화면
-function queueScreen() {
-  let listTracks = state.queueTracks;
-  if (state.queueTab === "my") {
-    if (state.queueMyPlaylistId) {
-      const pl = myPlaylists.find(p => p.id.toString() === state.queueMyPlaylistId);
-      listTracks = pl ? pl.tracks : [];
-    } else {
-      listTracks = [];
-    }
-  } else if (state.queueTab === "fast") listTracks = tracks.slice(0, 6);
-  else if (state.queueTab === "external") listTracks = state.externalTracks || [];
-  else if (state.queueTab === "hires") listTracks = tracks.slice(2, 7);
+function escapeAttr(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/"/g, "&quot;")
+    .replace(/</g, "&lt;");
+}
 
-  if (state.queueSearchQuery.trim()) {
-    const q = state.queueSearchQuery.trim().toLowerCase();
-    listTracks = listTracks.filter(
-      (t) => t.title.toLowerCase().includes(q) || t.artist.toLowerCase().includes(q)
-    );
+function getQueueTabTracks() {
+  if (state.queueTab === "my") {
+    if (!state.queueMyPlaylistId) return [];
+    const pl = myPlaylists.find((p) => p.id.toString() === state.queueMyPlaylistId);
+    return pl ? pl.tracks : [];
+  }
+  if (state.queueTab === "fast") return tracks.slice(0, 6);
+  if (state.queueTab === "external") return state.externalTracks || [];
+  if (state.queueTab === "hires") return tracks.slice(2, 7);
+  return state.queueTracks;
+}
+
+function getFilteredQueueTracks() {
+  const listTracks = getQueueTabTracks();
+  const q = (state.queueSearchQuery || "").trim().toLowerCase();
+  if (!q) return listTracks;
+  return listTracks.filter(
+    (t) => (t.title || "").toLowerCase().includes(q) || (t.artist || "").toLowerCase().includes(q)
+  );
+}
+
+function queueSongListInner(listTracks) {
+  if (state.queueTab === "my" && !state.queueMyPlaylistId) {
+    return `
+          <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; padding-top:100px;">
+            <div style="font-size:16px; color:#141414; font-weight:700; margin-bottom:16px;">나의 플레이리스트를 선택하세요!</div>
+            <button data-action="queue-my-open-sheet" style="padding:10px 16px; background:#dcdcdc; color:#333; border:none; border-radius:4px; font-size:14px; font-weight:600; cursor:pointer;">플레이리스트 보기</button>
+          </div>`;
   }
 
-  const selectedCount = state.selectedQueueIds.length;
-  const isAllSelected = listTracks.length > 0 && selectedCount === listTracks.length;
   const current = currentTrack();
-
-  // Queue Pagination 적용
   const visibleQueue = listTracks.slice(0, state.queueVisibleCount);
   const hasMoreQueue = state.queueVisibleCount < listTracks.length;
-
   const queueItems = visibleQueue.map((track) => {
-    // 실제 listTracks 배열 내 인덱스를 추적합니다.
     const idx = listTracks.indexOf(track);
     const trackId = (track.id || (idx + 1)).toString();
     const isSelected = state.selectedQueueIds.includes(trackId);
@@ -1011,7 +1024,63 @@ function queueScreen() {
       </div> `;
   }).join("");
 
-  const observerEl = hasMoreQueue ? `<div id = "queue-observer" style="height: 20px;" ></div> ` : "";
+  const observerEl = hasMoreQueue ? `<div id="queue-observer" style="height: 20px;"></div>` : "";
+  const externalBtn = state.queueTab === "external" && !(state.externalTracks || []).length
+    ? `<div style="padding: 16px; text-align: center; border-bottom: 1px solid #f4f4f4; margin-bottom: 8px;">
+            <button data-action="go-audio-tab" style="padding: 12px 24px; background: #0096fd; color: #fff; border: none; border-radius: 24px; font-weight: bold; font-size: 15px; cursor: pointer; box-shadow: 0 2px 8px rgba(0,150,253,0.3);">오디오 바로가기</button>
+          </div>`
+    : "";
+  return externalBtn + queueItems + observerEl;
+}
+
+let queueSearchPaint = 0;
+let queueSearchScrollTop = null;
+
+function scheduleQueueListPatch(scrollTop) {
+  if (arguments.length > 0) queueSearchScrollTop = scrollTop;
+  if (queueSearchPaint) return;
+  queueSearchPaint = requestAnimationFrame(() => {
+    queueSearchPaint = 0;
+    const top = queueSearchScrollTop;
+    queueSearchScrollTop = null;
+    patchQueueList(top);
+  });
+}
+
+function patchQueueList(scrollTop) {
+  const listEl = document.querySelector(".queue-container .queue-song-list");
+  if (!listEl) return;
+  const listTracks = getFilteredQueueTracks();
+  const previousScroll = listEl.scrollTop;
+  listEl.innerHTML = queueSongListInner(listTracks);
+  listEl.scrollTop = scrollTop == null ? previousScroll : scrollTop;
+  document.querySelectorAll(".queue-filtered-count").forEach((el) => {
+    el.textContent = String(listTracks.length);
+  });
+
+  const wrap = document.querySelector(".queue-search-input-wrap");
+  if (wrap) {
+    const btn = wrap.querySelector('[data-action="clear-queue-search"]');
+    if (state.queueSearchQuery) {
+      if (!btn) {
+        wrap.insertAdjacentHTML(
+          "beforeend",
+          `<button class="pld-search-clear" type="button" data-action="clear-queue-search" aria-label="검색어 지우기"><svg width='1em' height='1em' viewBox='0 0 24 24' fill='currentColor' xmlns='http://www.w3.org/2000/svg'><path d='M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z'/></svg></button>`
+        );
+      }
+    } else if (btn) {
+      btn.remove();
+    }
+  }
+  setupIntersectionObserver();
+}
+
+// 6. 재생목록 화면
+function queueScreen() {
+  const listTracks = getFilteredQueueTracks();
+  const selectedCount = state.selectedQueueIds.length;
+  const isAllSelected = listTracks.length > 0 && selectedCount === listTracks.length;
+  const current = currentTrack();
 
   return `
       <div class="queue-container" >
@@ -1032,7 +1101,7 @@ function queueScreen() {
       ${state.queueShowSearch ? `
         <div class="queue-search-input-wrap">
           <span class="search-icon"><svg width=\'1em\' height=\'1em\' viewBox=\'0 0 24 24\' fill=\'currentColor\' xmlns=\'http://www.w3.org/2000/svg\'><path d=\'M15.5 14h-.79l-.28-.27A6.471 6.471 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z\'/></svg></span>
-          <input type="text" id="queue-search-input" value="${state.queueSearchQuery}" placeholder="재생목록에서 검색" />
+          <input type="text" id="queue-search-input" value="${escapeAttr(state.queueSearchQuery)}" placeholder="재생목록에서 검색" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="search" />
           ${state.queueSearchQuery ? '<button class="pld-search-clear" data-action="clear-queue-search"><svg width=\'1em\' height=\'1em\' viewBox=\'0 0 24 24\' fill=\'currentColor\' xmlns=\'http://www.w3.org/2000/svg\'><path d=\'M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z\'/></svg></button>' : ""}
         </div>
       ` : ""
@@ -1047,9 +1116,9 @@ function queueScreen() {
             </button>
           ` : (state.queueTab === "my" && state.queueMyPlaylistId) ? `
             <button class="queue-my-pl-select-btn" data-action="queue-my-open-sheet" style="background:none; border:none; display:flex; align-items:center; font-size:15px; font-weight:700; color:#141414; padding:0; cursor:pointer;">
-              ${myPlaylists.find(p => p.id.toString() === state.queueMyPlaylistId)?.title} <span style="color:#0096fd; margin-left:4px;">${listTracks.length}</span> <img src="assets/queue_chevron_down.svg" style="margin-left:4px;" width="14" height="11" alt="" />
+              ${myPlaylists.find(p => p.id.toString() === state.queueMyPlaylistId)?.title} <span class="queue-filtered-count" style="color:#0096fd; margin-left:4px;">${listTracks.length}</span> <img src="assets/queue_chevron_down.svg" style="margin-left:4px;" width="14" height="11" alt="" />
             </button>
-          ` : `<span class="queue-total-label">전체</span><span class="queue-total-count">${listTracks.length}</span>`}
+          ` : `<span class="queue-total-label">전체</span><span class="queue-total-count queue-filtered-count">${listTracks.length}</span>`}
         </div>
         <div class="queue-ctrl-right">
           <button class="queue-tool-btn" data-action="queue-toggle-edit">${state.queueEdit ? "완료" : "편집"}</button>
@@ -1062,16 +1131,7 @@ function queueScreen() {
       `}
 
       <div class="queue-song-list">
-        ${state.queueTab === "my" && !state.queueMyPlaylistId ? `
-          <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; padding-top:100px;">
-            <div style="font-size:16px; color:#141414; font-weight:700; margin-bottom:16px;">나의 플레이리스트를 선택하세요!</div>
-            <button data-action="queue-my-open-sheet" style="padding:10px 16px; background:#dcdcdc; color:#333; border:none; border-radius:4px; font-size:14px; font-weight:600; cursor:pointer;">플레이리스트 보기</button>
-          </div>
-        ` : (state.queueTab === "external" ? `
-          <div style="padding: 16px; text-align: center; border-bottom: 1px solid #f4f4f4; margin-bottom: 8px;">
-            <button data-action="go-audio-tab" style="padding: 12px 24px; background: #0096fd; color: #fff; border: none; border-radius: 24px; font-weight: bold; font-size: 15px; cursor: pointer; box-shadow: 0 2px 8px rgba(0,150,253,0.3);">오디오 바로가기</button>
-          </div>
-        ` : "") + queueItems + observerEl}
+        ${queueSongListInner(listTracks)}
       </div>
 
       ${state.queueEdit && state.sheet !== "save-to-playlist" ? `
@@ -1168,10 +1228,98 @@ function addSongScreen() {
     </div>`;
 }
 
+function filteredPlaylists() {
+  const q = (state.playlistListSearchQuery || "").trim().toLowerCase();
+  if (!q) return myPlaylists;
+  return myPlaylists.filter((pl) => (pl.title || "").toLowerCase().includes(q));
+}
+
+function playlistListEditItemsHtml() {
+  const list = filteredPlaylists();
+  if (list.length === 0) {
+    return `<div style="padding: 48px 0; text-align: center; color: #888;">플레이리스트가 없습니다.</div>`;
+  }
+  return list.map((pl) => {
+    const checked = state.selectedPlaylistIds.includes(pl.id.toString());
+    const cover = pl.tracks.length > 0 && pl.tracks[0].cover
+      ? `background-image:url(${pl.tracks[0].cover}); background-size:cover;`
+      : `background-color:${pl.color || "#8CC7BF"};`;
+    return `
+      <div class="lib-pl-edit-item" draggable="true" data-action="toggle-playlist-select" data-id="${pl.id}">
+        <div class="pld-checkbox${checked ? " is-checked" : ""}"></div>
+        <div class="lib-pl-thumb" style="${cover}"></div>
+        <div class="pld-song-info">
+          <div class="pld-song-title">${pl.title}</div>
+          <div class="pld-song-artist">총 ${pl.tracks.length}곡</div>
+        </div>
+        <div class="pld-drag-handle" data-action="drag-playlist" data-id="${pl.id}">≡</div>
+      </div>`;
+  }).join("");
+}
+
+function playlistListEditScreen() {
+  const selectedCount = state.selectedPlaylistIds.length;
+  const visible = filteredPlaylists();
+  const isAllSelected = visible.length > 0 && visible.every((pl) => state.selectedPlaylistIds.includes(pl.id.toString()));
+
+  return `
+      <div class="pld-edit-view">
+      <div class="pld-edit-top-bar">
+        <button class="pld-edit-close" data-action="close-playlist-list-edit" aria-label="닫기"><svg width='1em' height='1em' viewBox='0 0 24 24' fill='currentColor' xmlns='http://www.w3.org/2000/svg'><path d='M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z'/></svg></button>
+        <h2>플레이리스트 편집</h2>
+        <div style="width:24px;"></div>
+      </div>
+      <div class="pld-search-bar" style="display:flex; align-items:center;">
+        <span class="search-icon"><svg width='1em' height='1em' viewBox='0 0 24 24' fill='currentColor' xmlns='http://www.w3.org/2000/svg'><path d='M15.5 14h-.79l-.28-.27A6.471 6.471 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z'/></svg></span>
+        <input type="text" id="pl-list-search-input" value="${escapeAttr(state.playlistListSearchQuery || "")}" placeholder="이 리스트에서 찾기" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" style="flex:1; border:none; background:none; outline:none; font-size:15px; margin-left:8px;" />
+        ${state.playlistListSearchQuery ? `<button type="button" class="pld-search-clear" data-action="clear-playlist-list-search" aria-label="검색어 지우기"><svg width='1em' height='1em' viewBox='0 0 24 24' fill='currentColor' xmlns='http://www.w3.org/2000/svg'><path d='M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z'/></svg></button>` : ""}
+      </div>
+      <div class="pld-ctrl-row" style="margin-bottom: 8px;">
+        <button class="pld-ctrl-btn" data-action="toggle-playlist-select-all">
+          <div class="pld-checkbox${isAllSelected ? " is-checked" : ""}" style="margin-right: 4px;"></div>
+          전체선택 ${selectedCount > 0 ? `(${selectedCount})` : ""}
+        </button>
+      </div>
+      <div class="pld-song-list">
+        ${playlistListEditItemsHtml()}
+      </div>
+    </div>`;
+}
+
+function patchPlaylistListEdit() {
+  const listEl = document.querySelector(".pld-edit-view .pld-song-list");
+  if (listEl) listEl.innerHTML = playlistListEditItemsHtml();
+
+  const visible = filteredPlaylists();
+  const selectedCount = state.selectedPlaylistIds.length;
+  const isAllSelected = visible.length > 0 && visible.every((pl) => state.selectedPlaylistIds.includes(pl.id.toString()));
+  const selectBtn = document.querySelector('[data-action="toggle-playlist-select-all"]');
+  if (selectBtn) {
+    selectBtn.innerHTML = `<div class="pld-checkbox${isAllSelected ? " is-checked" : ""}" style="margin-right: 4px;"></div>전체선택 ${selectedCount > 0 ? `(${selectedCount})` : ""}`;
+  }
+
+  const wrap = document.querySelector(".pld-edit-view .pld-search-bar");
+  if (wrap) {
+    const btn = wrap.querySelector('[data-action="clear-playlist-list-search"]');
+    if (state.playlistListSearchQuery) {
+      if (!btn) {
+        wrap.insertAdjacentHTML("beforeend", `<button type="button" class="pld-search-clear" data-action="clear-playlist-list-search" aria-label="검색어 지우기"><svg width='1em' height='1em' viewBox='0 0 24 24' fill='currentColor' xmlns='http://www.w3.org/2000/svg'><path d='M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z'/></svg></button>`);
+      }
+    } else if (btn) {
+      btn.remove();
+    }
+  }
+}
+
+function replacePlaylistOrder(next) {
+  myPlaylists.splice(0, myPlaylists.length, ...next);
+}
+
 function libraryScreen() {
   if (state.libraryView === "detail") return playlistDetailScreen();
   if (state.libraryView === "search") return playlistSearchScreen();
   if (state.libraryView === "edit") return playlistEditScreen();
+  if (state.libraryView === "pl-edit") return playlistListEditScreen();
   if (state.libraryView === "add-song") return addSongScreen();
   return libraryMainScreen();
 }
@@ -1387,9 +1535,15 @@ function render() {
   } else {
     const showGlobalHeader = state.tab === "home";
     const showChips = state.tab === "home" && state.screen === "home";
-    const isEditing = state.tab === "library" && state.libraryView === "edit" && state.sheet !== "save-to-playlist";
+    const isPlaylistListEdit = state.libraryView === "pl-edit";
+    const isEditing = state.tab === "library" && (state.libraryView === "edit" || isPlaylistListEdit) && state.sheet !== "save-to-playlist";
     const isSearchEditing = state.tab === "search" && state.selectedSearchIds && state.selectedSearchIds.length > 0 && state.sheet !== "save-to-playlist";
-    const selectedCount = state.selectedSongIds.length;
+    const selectedCount = isPlaylistListEdit ? state.selectedPlaylistIds.length : state.selectedSongIds.length;
+    const editMoveUp = isPlaylistListEdit ? "pl-edit-move-up" : "edit-move-up";
+    const editMoveTop = isPlaylistListEdit ? "pl-edit-move-top" : "edit-move-top";
+    const editMoveBottom = isPlaylistListEdit ? "pl-edit-move-bottom" : "edit-move-bottom";
+    const editDelete = isPlaylistListEdit ? "pl-edit-delete" : "edit-delete";
+    const editClear = isPlaylistListEdit ? "pl-edit-clear" : "edit-clear-selected";
     let body;
     if (state.tab === "search") {
       if (state.searchView === "album") body = searchAlbumScreen();
@@ -1408,11 +1562,11 @@ function render() {
         <div class="pld-edit-toolbar-wrap" style="background:#0096fd;">
           ${selectedCount > 0 ? `<div class="pld-count-badge-floating" style="background:#0096fd; color:#fff; border: 2px solid #fff;">${selectedCount}</div>` : ""}
           <div class="pld-edit-toolbar" style="background:#0096fd; border: none; padding-top: 10px;">
-            <button class="pld-tool-btn" data-action="edit-move-up" style="color:#fff;"><img src="assets/edit_up.svg" width="24" height="24" style="margin-bottom: 4px;" alt="위로"/><span style="font-size: 11px;">위로</span></button>
-            <button class="pld-tool-btn" data-action="edit-move-top" style="color:#fff;"><img src="assets/edit_top.svg" width="24" height="24" style="margin-bottom: 4px;" alt="맨위로"/><span style="font-size: 11px;">맨위로</span></button>
-            <button class="pld-tool-btn" data-action="edit-move-bottom" style="color:#fff;"><img src="assets/edit_bottom.svg" width="24" height="24" style="margin-bottom: 4px;" alt="맨아래로"/><span style="font-size: 11px;">맨아래로</span></button>
-            <button class="pld-tool-btn" data-action="edit-delete" style="color:#fff;"><img src="assets/edit_delete.png" width="24" height="24" style="margin-bottom: 4px;" alt="삭제"/><span style="font-size: 11px;">삭제</span></button>
-            <button class="pld-tool-btn" data-action="edit-clear-selected" style="color:#fff;"><img src="assets/edit_cancel.png" width="24" height="24" style="margin-bottom: 4px;" alt="선택취소"/><span style="font-size: 11px;">선택취소</span></button>
+            <button class="pld-tool-btn" data-action="${editMoveUp}" style="color:#fff;"><img src="assets/edit_up.svg" width="24" height="24" style="margin-bottom: 4px;" alt="위로"/><span style="font-size: 11px;">위로</span></button>
+            <button class="pld-tool-btn" data-action="${editMoveTop}" style="color:#fff;"><img src="assets/edit_top.svg" width="24" height="24" style="margin-bottom: 4px;" alt="맨위로"/><span style="font-size: 11px;">맨위로</span></button>
+            <button class="pld-tool-btn" data-action="${editMoveBottom}" style="color:#fff;"><img src="assets/edit_bottom.svg" width="24" height="24" style="margin-bottom: 4px;" alt="맨아래로"/><span style="font-size: 11px;">맨아래로</span></button>
+            <button class="pld-tool-btn" data-action="${editDelete}" style="color:#fff;"><img src="assets/edit_delete.png" width="24" height="24" style="margin-bottom: 4px;" alt="삭제"/><span style="font-size: 11px;">삭제</span></button>
+            <button class="pld-tool-btn" data-action="${editClear}" style="color:#fff;"><img src="assets/edit_cancel.png" width="24" height="24" style="margin-bottom: 4px;" alt="선택취소"/><span style="font-size: 11px;">선택취소</span></button>
           </div>
         </div>`
         : isSearchEditing ? `
@@ -1585,7 +1739,8 @@ function setupIntersectionObserver() {
           shouldRender = true;
         } else if (entry.target.id === "queue-observer") {
           state.queueVisibleCount += 30;
-          shouldRender = true;
+          if (state.showQueue) patchQueueList();
+          else shouldRender = true;
         } else if (entry.target.id === "pld-edit-observer") {
           state.pldEditVisibleCount += 30;
           shouldRender = true;
@@ -2240,7 +2395,14 @@ app.addEventListener("click", (event) => {
     return;
   } else if (action === "clear-queue-search") {
     state.queueSearchQuery = "";
-    return render();
+    state.queueVisibleCount = 30;
+    const inp = document.getElementById("queue-search-input");
+    if (inp) {
+      inp.value = "";
+      inp.focus();
+    }
+    patchQueueList(0);
+    return;
   } else if (action === "queue-toggle-edit") {
     state.queueEdit = !state.queueEdit;
     state.selectedQueueIds = [];
@@ -2376,6 +2538,75 @@ app.addEventListener("click", (event) => {
   } else if (action === "clear-pld-search") {
     state.playlistSearchQuery = "";
     state.pldVisibleCount = 30;
+    return render();
+  } else if (action === "open-playlist-list-edit") {
+    state.libraryView = "pl-edit";
+    state.selectedPlaylistIds = [];
+    state.playlistListSearchQuery = "";
+    return render();
+  } else if (action === "close-playlist-list-edit") {
+    state.libraryView = "main";
+    state.selectedPlaylistIds = [];
+    state.playlistListSearchQuery = "";
+    return render();
+  } else if (action === "clear-playlist-list-search") {
+    state.playlistListSearchQuery = "";
+    const inp = document.getElementById("pl-list-search-input");
+    if (inp) {
+      inp.value = "";
+      inp.focus();
+    }
+    patchPlaylistListEdit();
+    return;
+  } else if (action === "toggle-playlist-select") {
+    const plId = target.dataset.id.toString();
+    const idx = state.selectedPlaylistIds.indexOf(plId);
+    if (idx > -1) state.selectedPlaylistIds.splice(idx, 1);
+    else state.selectedPlaylistIds.push(plId);
+    return render();
+  } else if (action === "toggle-playlist-select-all") {
+    const visibleIds = filteredPlaylists().map((pl) => pl.id.toString());
+    const allSelected = visibleIds.length > 0 && visibleIds.every((id) => state.selectedPlaylistIds.includes(id));
+    if (allSelected) {
+      state.selectedPlaylistIds = state.selectedPlaylistIds.filter((id) => !visibleIds.includes(id));
+    } else {
+      visibleIds.forEach((id) => {
+        if (!state.selectedPlaylistIds.includes(id)) state.selectedPlaylistIds.push(id);
+      });
+    }
+    return render();
+  } else if (action === "drag-playlist" || action === "drag-song") {
+    return;
+  } else if (action === "pl-edit-move-up" || action === "pl-edit-move-top" || action === "pl-edit-move-bottom") {
+    if (state.selectedPlaylistIds.length === 0) return alert("이동할 플레이리스트를 선택해주세요.");
+    const selected = (pl) => state.selectedPlaylistIds.includes(pl.id.toString());
+    if (action === "pl-edit-move-top") {
+      replacePlaylistOrder([...myPlaylists.filter(selected), ...myPlaylists.filter((pl) => !selected(pl))]);
+    } else if (action === "pl-edit-move-bottom") {
+      replacePlaylistOrder([...myPlaylists.filter((pl) => !selected(pl)), ...myPlaylists.filter(selected)]);
+    } else {
+      for (let i = 1; i < myPlaylists.length; i++) {
+        if (selected(myPlaylists[i]) && !selected(myPlaylists[i - 1])) {
+          const temp = myPlaylists[i];
+          myPlaylists[i] = myPlaylists[i - 1];
+          myPlaylists[i - 1] = temp;
+        }
+      }
+    }
+    return render();
+  } else if (action === "pl-edit-delete") {
+    if (state.selectedPlaylistIds.length === 0) return alert("삭제할 플레이리스트를 선택해주세요.");
+    if (confirm(`선택한 ${state.selectedPlaylistIds.length}개 플레이리스트를 삭제하시겠습니까?`)) {
+      const remain = myPlaylists.filter((pl) => !state.selectedPlaylistIds.includes(pl.id.toString()));
+      replacePlaylistOrder(remain);
+      state.selectedPlaylistIds = [];
+      if (!myPlaylists.some((pl) => pl.id.toString() === String(state.currentPlaylistId))) {
+        state.currentPlaylistId = myPlaylists[0] ? myPlaylists[0].id : null;
+      }
+    }
+    return render();
+  } else if (action === "pl-edit-clear") {
+    state.selectedPlaylistIds = [];
     return render();
   } else if (action === "open-edit-mode") {
     state.libraryView = "edit";
@@ -2931,13 +3162,14 @@ app.addEventListener("click", (event) => {
 app.addEventListener("input", (event) => {
   if (event.target.id === "queue-search-input") {
     state.queueSearchQuery = event.target.value;
-    state.queueVisibleCount = 30; // 렌더링 초기화
-    render();
-    const inp = document.getElementById("queue-search-input");
-    if (inp) {
-      inp.focus();
-      inp.setSelectionRange(inp.value.length, inp.value.length);
-    }
+    state.queueVisibleCount = 30;
+    scheduleQueueListPatch(0);
+    return;
+  }
+
+  if (event.target.id === "pl-list-search-input") {
+    state.playlistListSearchQuery = event.target.value;
+    patchPlaylistListEdit();
     return;
   }
 
@@ -2973,7 +3205,7 @@ let touchHoveredItem = null;
 
 // Desktop HTML5 Drag & Drop
 app.addEventListener("dragstart", (e) => {
-  const item = e.target.closest(".pld-edit-item") || e.target.closest(".queue-song-item");
+  const item = e.target.closest(".pld-edit-item, .lib-pl-edit-item") || e.target.closest(".queue-song-item");
   if (item) {
     draggedItemInfo = item.dataset.id;
     e.dataTransfer.effectAllowed = "move";
@@ -2983,7 +3215,7 @@ app.addEventListener("dragstart", (e) => {
 });
 
 app.addEventListener("dragover", (e) => {
-  const item = e.target.closest(".pld-edit-item") || e.target.closest(".queue-song-item");
+  const item = e.target.closest(".pld-edit-item, .lib-pl-edit-item") || e.target.closest(".queue-song-item");
   if (item && item.dataset.id !== draggedItemInfo) {
     e.preventDefault();
     item.style.borderTop = "2px solid #141414";
@@ -2991,14 +3223,14 @@ app.addEventListener("dragover", (e) => {
 });
 
 app.addEventListener("dragleave", (e) => {
-  const item = e.target.closest(".pld-edit-item") || e.target.closest(".queue-song-item");
+  const item = e.target.closest(".pld-edit-item, .lib-pl-edit-item") || e.target.closest(".queue-song-item");
   if (item) {
     item.style.borderTop = "";
   }
 });
 
 app.addEventListener("drop", (e) => {
-  const item = e.target.closest(".pld-edit-item") || e.target.closest(".queue-song-item");
+  const item = e.target.closest(".pld-edit-item, .lib-pl-edit-item") || e.target.closest(".queue-song-item");
   if (item) {
     e.preventDefault();
     item.style.borderTop = "";
@@ -3015,7 +3247,7 @@ app.addEventListener("dragend", (e) => {
 app.addEventListener("touchstart", (e) => {
   const handle = e.target.closest(".pld-drag-handle");
   if (!handle) return;
-  const item = handle.closest(".pld-edit-item") || handle.closest(".queue-song-item");
+  const item = handle.closest(".pld-edit-item, .lib-pl-edit-item") || handle.closest(".queue-song-item");
   if (item) {
     draggedItemInfo = item.dataset.id;
     setTimeout(() => item.classList.add("dragging"), 0);
@@ -3036,9 +3268,9 @@ app.addEventListener("touchmove", (e) => {
   
   if (draggingEl) draggingEl.style.pointerEvents = "";
 
-  const item = elementUnderTouch ? (elementUnderTouch.closest(".pld-edit-item") || elementUnderTouch.closest(".queue-song-item")) : null;
+  const item = elementUnderTouch ? (elementUnderTouch.closest(".pld-edit-item, .lib-pl-edit-item") || elementUnderTouch.closest(".queue-song-item")) : null;
   
-  const allItems = document.querySelectorAll(".pld-edit-item, .queue-song-item");
+  const allItems = document.querySelectorAll(".pld-edit-item, .lib-pl-edit-item, .queue-song-item");
   allItems.forEach(i => i.style.borderTop = "");
   
   if (item && item.dataset.id !== draggedItemInfo) {
@@ -3062,7 +3294,15 @@ app.addEventListener("touchend", (e) => {
 
 function handleDrop(sourceId, targetId, item) {
   if (sourceId && targetId && sourceId !== targetId) {
-    if (item.classList.contains("pld-edit-item")) {
+    if (item.classList.contains("lib-pl-edit-item")) {
+      const fromIdx = myPlaylists.findIndex((pl) => pl.id.toString() === sourceId);
+      const toIdx = myPlaylists.findIndex((pl) => pl.id.toString() === targetId);
+      if (fromIdx > -1 && toIdx > -1) {
+        const playlist = myPlaylists.splice(fromIdx, 1)[0];
+        myPlaylists.splice(toIdx, 0, playlist);
+        render();
+      }
+    } else if (item.classList.contains("pld-edit-item")) {
       const pl = getCurrentPlaylist();
       if (pl) {
         const fromIdx = pl.tracks.findIndex(t => t.id.toString() === sourceId);
@@ -3087,7 +3327,7 @@ function handleDrop(sourceId, targetId, item) {
 }
 
 function cleanupDrag() {
-  const allItems = document.querySelectorAll(".pld-edit-item, .queue-song-item");
+  const allItems = document.querySelectorAll(".pld-edit-item, .lib-pl-edit-item, .queue-song-item");
   allItems.forEach(i => { i.classList.remove("dragging"); i.style.borderTop = ""; });
   draggedItemInfo = null;
   touchHoveredItem = null;
