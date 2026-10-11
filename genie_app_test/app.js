@@ -7,10 +7,14 @@ const tracks = [];
 const labels = [];
 
 const labelPickTemplates = [
-  { id: "label-1", title: "시네마 파노라마", sub: "2000년대 유행곡" },
-  { id: "label-2", title: "나이트 드라이브", sub: "밤을 채우는 선율" },
-  { id: "label-3", title: "포커스 타임", sub: "집중할 때 듣는 곡" },
-  { id: "label-4", title: "선데이 무드", sub: "주말을 여는 리스트" },
+  { id: "label-1", title: "시네마 파노라마", sub: "2000년대 유행곡", tags: "#시네마 #2000년대 #OST", likes: 128 },
+  { id: "label-2", title: "나이트 드라이브", sub: "밤을 채우는 선율", tags: "#드라이브 #밤 #팝", likes: 96 },
+  { id: "label-3", title: "포커스 타임", sub: "집중할 때 듣는 곡", tags: "#집중 #공부 #잔잔한", likes: 54 },
+  { id: "label-4", title: "선데이 무드", sub: "주말을 여는 리스트", tags: "#주말 #무드 #인디", likes: 41 },
+  { id: "label-5", title: "가을에 듣기 좋은 가요", sub: "쌀쌀한 저녁의 발라드", tags: "#가요 #발라드 #가을", likes: 33 },
+  { id: "label-6", title: "아침을 여는 팝", sub: "가볍게 시작하기 좋은 곡", tags: "#POP #모닝 #상쾌한", likes: 77 },
+  { id: "label-7", title: "퇴근길 플레이리스트", sub: "하루를 정리하는 음악", tags: "#퇴근 #감성 #저녁", likes: 19 },
+  { id: "label-8", title: "한 주의 시작을 밝히는 인디", sub: "월요일을 부드럽게", tags: "#인디 #월요일 #기분좋은", likes: 62 },
 ];
 
 function labelPickPlaylists() {
@@ -25,6 +29,7 @@ function labelPickPlaylists() {
       color: "#243044",
       cover: songs[0]?.cover || "",
       tracks: songs,
+      likes: tpl.likes || 0,
       time: songs.length ? `${songs.length * 3}분` : "0분",
     };
   });
@@ -102,6 +107,7 @@ const state = {
   tab: "home",
   chips: ["홈", "Dolby", "고음질 전용관", "오디오", "매거진"],
   chip: "홈",
+  labelFromList: false,
   djMessages: [],
   djSearching: false,
   screen: "home",
@@ -761,7 +767,7 @@ function homeScreen() {
       )
       .join("")}</div></section> `;
 
-  const labelCards = labelPickPlaylists().map(labelPickCard).join("");
+  const labelCards = labelPickPlaylists().slice(0, 4).map(labelPickCard).join("");
 
   return `
       <div class="promo-section">
@@ -803,6 +809,34 @@ function labelPickCard(pl) {
     </div>`;
 }
 
+function labelPickRow(pl) {
+  const cover = pl.cover
+    ? `<img src="${escapeHtml(pl.cover)}" alt="" />`
+    : `<span class="label-list-fallback"></span>`;
+  return `
+    <div class="label-list-row" data-action="open-label-pick" data-id="${pl.id}">
+      <div class="label-list-cover">
+        ${cover}
+        <button type="button" class="label-list-play" data-action="play-label-pick" data-id="${pl.id}" aria-label="${escapeHtml(pl.title)} 재생"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></button>
+      </div>
+      <div class="label-list-meta">
+        <strong>${escapeHtml(pl.title)}</strong>
+        <em>${escapeHtml(pl.tags || pl.sub)}</em>
+        <span>${pl.tracks.length}곡 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 20s-7-4.4-7-9.2C5 8 6.8 6.2 9.2 6.2c1.3 0 2.4.6 2.8 1.6.4-1 1.5-1.6 2.8-1.6C17.2 6.2 19 8 19 10.8 19 15.6 12 20 12 20z"/></svg> ${pl.likes || 0}</span>
+      </div>
+    </div>`;
+}
+
+function labelPickListScreen() {
+  const rows = labelPickPlaylists().map(labelPickRow).join("");
+  return `
+    <section class="page label-list-page">
+      <button class="back" data-action="back">‹ 홈</button>
+      <h1>레이블 PICK</h1>
+      <div class="label-list">${rows}</div>
+    </section>`;
+}
+
 function labelPickDetailScreen() {
   const pl = findLabelPick(state.currentLabelId);
   if (!pl)
@@ -825,7 +859,7 @@ function labelPickDetailScreen() {
 
   return `
     <section class="page label-pick-detail">
-      <button class="back" data-action="back">‹ 홈</button>
+      <button class="back" data-action="back">${state.labelFromList ? "‹ 목록" : "‹ 홈"}</button>
       <div class="label-pick-hero" style="${cover}"></div>
       <h1>${pl.title}</h1>
       <p class="label-pick-sub">${pl.sub} · ${pl.tracks.length}곡</p>
@@ -2203,7 +2237,8 @@ function render() {
       else body = searchScreen();
     } else if (state.tab === "library") body = libraryScreen();
     else if (state.tab === "home") {
-      if (state.screen === "label-pick") body = labelPickDetailScreen();
+      if (state.screen === "label-list") body = labelPickListScreen();
+      else if (state.screen === "label-pick") body = labelPickDetailScreen();
       else body = state.screen === "home" ? homeScreen() : listScreen();
     } else if (state.tab === "aidj") body = djChatScreen();
     else body = tabScreen();
@@ -3050,10 +3085,16 @@ app.addEventListener("click", (event) => {
     return;
   } else if (action === "more") {
     state.expanded = true;
-  } else if (action === "chart" || action === "labels") {
+  } else if (action === "chart") {
     state.screen = "chart";
     state.screenTitle = "차트";
     state.expanded = true;
+  } else if (action === "labels") {
+    state.tab = "home";
+    state.chip = "홈";
+    state.screen = "label-list";
+    state.labelFromList = false;
+    return render();
   } else if (action === "send-dj") {
     const input = document.getElementById("dj-input");
     const query = input ? input.value : "";
@@ -3071,6 +3112,7 @@ app.addEventListener("click", (event) => {
   } else if (action === "open-label-pick") {
     state.tab = "home";
     state.chip = "홈";
+    state.labelFromList = state.screen === "label-list";
     state.screen = "label-pick";
     state.currentLabelId = target.dataset.id;
     return render();
@@ -3109,6 +3151,10 @@ app.addEventListener("click", (event) => {
     showToast(`'${pl.title}'을 내 플레이리스트에 담았습니다.`);
     return;
   } else if (action === "back" || action === "logo") {
+    if (action === "back" && state.screen === "label-pick" && state.labelFromList) {
+      state.screen = "label-list";
+      return render();
+    }
     state.tab = "home";
     state.chip = "홈";
     state.screen = "home";
