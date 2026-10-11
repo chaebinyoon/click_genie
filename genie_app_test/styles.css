@@ -2067,6 +2067,63 @@ button {
   display: none;
 }
 
+.queue-song-list:has(.queue-pass-notice) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.queue-pass-popup {
+  position: absolute;
+  inset: 0;
+  z-index: 80;
+}
+
+.queue-pass-popup-back {
+  position: absolute;
+  inset: 0;
+  background: rgba(17, 24, 39, 0.28);
+}
+
+.queue-pass-popup-card {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(280px, calc(100% - 48px));
+  background: #fff;
+  border-radius: 16px;
+  padding: 28px 20px 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  text-align: center;
+}
+
+.queue-pass-popup-card p {
+  margin: 0 0 20px;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.5;
+  color: #141414;
+}
+
+.queue-pass-popup-card button {
+  width: 100%;
+  height: 44px;
+  color: #0096fd;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.queue-pass-notice {
+  margin: 0;
+  padding: 24px;
+  text-align: center;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.5;
+  color: #141414;
+}
+
 .queue-song-item {
   height: 64px;
   padding: 0 20px;
