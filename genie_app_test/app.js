@@ -653,9 +653,14 @@ function dolbyGateScreen() {
     </section>`;
 }
 
+function magazineScreen() {
+  return `<section class="notice-page"><p>아직 준비중인 기능입니다.</p></section>`;
+}
+
 function homeScreen() {
   if (state.chip === "DJ") return djChatScreen();
   if (state.chip === "Dolby") return dolbyGateScreen();
+  if (state.chip === "매거진") return magazineScreen();
   if (state.chip !== "홈")
     return `<section class="page" ><h1>${state.chip}</h1><div class="empty-list">${tracks.slice(0, 4).map((t, i) => `<button class="row" data-action="play" data-index="${i}">${t.title}</button>`).join("")}</div></section> `;
 
@@ -976,11 +981,11 @@ function libraryMainScreen() {
         </div>
       </div>
       <div class="lib-quick-grid">
-        <button class="lib-quick-card" data-action="quick-menu" data-type="like"><span class="icon" style="font-size:16px; font-weight: 300;">♡</span><span>좋아요</span></button>
-        <button class="lib-quick-card" data-action="quick-menu" data-type="album"><span class="icon" style="font-size:16px; font-weight: 300;">⊟</span><span>보관함</span></button>
-        <button class="lib-quick-card" data-action="quick-menu" data-type="recent"><span class="icon" style="font-size:16px; font-weight: 300;">🕒</span><span>최근 재생한</span></button>
-        <button class="lib-quick-card" data-action="quick-menu" data-type="most"><span class="icon" style="font-size:16px; font-weight: 300;"><svg width=\'1em\' height=\'1em\' viewBox=\'0 0 24 24\' fill=\'currentColor\' xmlns=\'http://www.w3.org/2000/svg\'><path d=\'M8 5v14l11-7z\'/></svg></span><span>많이 재생한</span></button>
-        <button class="lib-quick-card" data-action="quick-menu" data-type="dj"><span class="icon" style="font-size:16px; font-weight: 300;">☺</span><span>구독 DJ</span></button>
+        <button class="lib-quick-card" data-action="quick-menu" data-type="like"><img src="assets/lib/heart.svg" width="24" height="20" alt="" /><span>좋아요</span></button>
+        <button class="lib-quick-card" data-action="quick-menu" data-type="album"><img src="assets/lib/film.svg" width="16" height="16" alt="" /><span>보관함</span></button>
+        <button class="lib-quick-card" data-action="quick-menu" data-type="recent"><img src="assets/lib/clock.svg" width="20" height="20" alt="" /><span>최근 재생한</span></button>
+        <button class="lib-quick-card" data-action="quick-menu" data-type="most"><img src="assets/lib/pause-circle.svg" width="20" height="20" alt="" /><span>많이 재생한</span></button>
+        <button class="lib-quick-card" data-action="quick-menu" data-type="dj"><img src="assets/lib/smile.svg" width="20" height="20" alt="" /><span>구독 DJ</span></button>
       </div>
       <div class="lib-section-head">
         <h2>내 플레이리스트</h2>
@@ -1558,7 +1563,26 @@ function replacePlaylistOrder(next) {
   myPlaylists.splice(0, myPlaylists.length, ...next);
 }
 
+function libraryLoginGateScreen() {
+  return `
+    <section class="lib-gate">
+      <button type="button" class="lib-gate-back" data-action="library-back">뒤로</button>
+      <p>로그인이 필요한 기능입니다</p>
+      <button type="button" class="lib-gate-go" data-action="profile">하러가기</button>
+    </section>`;
+}
+
+function libraryPreparingScreen() {
+  return `
+    <section class="lib-gate">
+      <button type="button" class="lib-gate-back" data-action="library-back">뒤로</button>
+      <p>아직 준비중인 기능입니다.</p>
+    </section>`;
+}
+
 function libraryScreen() {
+  if (state.libraryView === "login-needed") return libraryLoginGateScreen();
+  if (state.libraryView === "preparing") return libraryPreparingScreen();
   if (state.libraryView === "detail") return playlistDetailScreen();
   if (state.libraryView === "search") return playlistSearchScreen();
   if (state.libraryView === "edit") return playlistEditScreen();
@@ -1747,12 +1771,25 @@ function loginScreen() {
   `;
 }
 
+function passOffer() {
+  return `
+    <section class="hires-price">
+      <p class="hires-price-label">초고음질 스마트 음악감상</p>
+      <p class="hires-price-value">첫 달<br />100원</p>
+      <p class="hires-muted">1회차 혜택가, 2회차 정상가</p>
+    </section>
+    <button class="hires-buy" data-action="buy-pass" type="button">이용권 구매하기</button>`;
+}
+
 function passPageScreen() {
-  const ad = state.passFromHires
-    ? `<div class="hires-ad-scroller" id="hires-ad-scroller">
-        <img src="assets/hires/ad-flac.jpg" alt="소리의 디테일과 공간감까지 FLAC 초고음질로 즐기는 지니뮤직" />
-      </div>`
-    : "";
+  if (!state.passFromHires) {
+    return `
+      <div class="hires-page hires-page-offer">
+        <div class="hires-offer">
+          ${passOffer()}
+        </div>
+      </div>`;
+  }
 
   return `
     <div class="hires-page">
@@ -1762,7 +1799,9 @@ function passPageScreen() {
         <span class="hires-header-spacer"></span>
       </div>
       <div class="hires-scroll">
-        ${ad}
+        <div class="hires-ad-scroller" id="hires-ad-scroller">
+          <img src="assets/hires/ad-flac.jpg" alt="소리의 디테일과 공간감까지 FLAC 초고음질로 즐기는 지니뮤직" />
+        </div>
         <section class="hires-hero">
           <div class="hires-badge">
             <img src="assets/hires/badge.svg" alt="" width="81" height="81" />
@@ -1787,12 +1826,7 @@ function passPageScreen() {
           <p class="hires-muted">보통 FLAC 16bit는 CD급 원음,<br />24bit는 스튜디오 원음으로 표현합니다.</p>
           <p class="hires-white">24bit가 더 세밀하게 소리를 기록하여<br />원음에 가까운 최상의 음질을 제공합니다.</p>
         </section>
-        <section class="hires-price">
-          <p class="hires-price-label">초고음질 스마트 음악감상</p>
-          <p class="hires-price-value">첫 달<br />100원</p>
-          <p class="hires-muted">1회차 혜택가, 2회차 정상가</p>
-        </section>
-        <button class="hires-buy" data-action="buy-pass" type="button">이용권 구매하기</button>
+        ${passOffer()}
       </div>
     </div>`;
 }
@@ -2665,6 +2699,29 @@ app.addEventListener("click", (event) => {
     return;
   } else if (action === "close-sheet") {
     state.sheet = null;
+  } else if (action === "quick-menu") {
+    const type = target.dataset.type;
+    if (type === "recent") {
+      state.showQueue = true;
+      state.queueTab = "queue";
+      state.queueEdit = false;
+      state.selectedQueueIds = [];
+      state.queueShowSearch = false;
+      state.queueSearchQuery = "";
+      state.queueVisibleCount = 30;
+      return render();
+    }
+    if (type === "dj") {
+      state.libraryView = "preparing";
+      return render();
+    }
+    if (type === "like" || type === "album" || type === "most") {
+      state.libraryView = "login-needed";
+      return render();
+    }
+  } else if (action === "library-back") {
+    state.libraryView = "main";
+    return render();
   }
 
   // --- 재생목록 (Queue) 액션 ---

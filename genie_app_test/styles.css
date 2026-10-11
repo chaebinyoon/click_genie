@@ -518,13 +518,17 @@ button {
   gap: 8px;
 }
 
-.main:has(.dolby-page) {
+.main:has(.dolby-page),
+.main:has(.notice-page),
+.main:has(.lib-gate) {
   overflow: hidden;
   display: flex;
   flex-direction: column;
 }
 
-.dolby-page {
+.dolby-page,
+.notice-page,
+.lib-gate {
   flex: 1;
   min-height: 0;
   display: flex;
@@ -532,7 +536,9 @@ button {
   padding: 24px 20px 16px;
 }
 
-.dolby-page p {
+.dolby-page p,
+.notice-page p,
+.lib-gate p {
   flex: 1;
   display: flex;
   align-items: center;
@@ -543,6 +549,25 @@ button {
   font-weight: 600;
   line-height: 1.5;
   color: #141414;
+}
+
+.lib-gate-back {
+  align-self: flex-start;
+  height: 32px;
+  color: #555;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.lib-gate-go {
+  align-self: center;
+  height: 32px;
+  padding: 0 14px;
+  border-radius: 16px;
+  background: #121212;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
 }
 
 .dolby-pass {
@@ -1171,12 +1196,9 @@ button {
   background: #edf0f3;
 }
 
-.lib-quick-card .icon {
-  font-size: 15px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #4b5563;
+.lib-quick-card img {
+  flex: none;
+  display: block;
 }
 
 /* 내 플레이리스트 섹션 */
@@ -2220,6 +2242,21 @@ button {
   flex-direction: column;
   background: #1b1429;
   color: #fff;
+}
+
+.hires-page-offer {
+  justify-content: center;
+}
+
+.hires-offer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.hires-page-offer .hires-price {
+  padding-top: 0;
 }
 
 .hires-header {
