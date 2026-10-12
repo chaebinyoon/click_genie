@@ -1466,7 +1466,6 @@ function playlistSearchScreen() {
         ${listItems}
         ${observerEl}
       </div>
-      <div class="keyboard-placeholder">자판</div>
     </div> `;
 }
 

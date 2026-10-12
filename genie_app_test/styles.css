@@ -1910,20 +1910,6 @@ button {
   cursor: pointer;
 }
 
-.keyboard-placeholder {
-  margin-top: auto;
-  height: 210px;
-  background: #e2e4e9;
-  border-radius: 12px;
-  display: grid;
-  place-items: center;
-  color: #4b5563;
-  font-size: 20px;
-  font-weight: 700;
-  letter-spacing: 2px;
-  user-select: none;
-}
-
 /* 5. 플레이리스트 편집 화면 */
 .pld-edit-view {
   padding: 8px 16px 90px;
